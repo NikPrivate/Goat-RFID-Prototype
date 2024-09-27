@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Farmer Page{% endblock %}</title>
+  <link rel="stylesheet" href="{{url_for('static', filename='style.css')}}">
+</head>
+<body>
+  <div class="dashboard-container">
+    <aside class="sidebar">
+      <h2>Dashboard</h2>
+      <nav>
+        <ul>
+          <li><a href="">Overview</a></li>
+          <li><a href="">RFID Scan</a></li>
+          <li><a href="">Goat</a></li>
+          <li><a href="">Slaughter</a></li>
+          <li><a href="">Feed Price Calculator</a></li>
+          <li><a href="">Feed Calculator</a></li>
+        </ul>
+      </nav>
+      <div class="logout">
+        <ul>
+          <li><a href="{{url_for('login')}}">Logout</a></li>
+        </ul>
+      </div>
+    </aside>
+    <div class="main-content">
+      <section class="content">
+        {% block content %}
+
+        {% endblock %}
+      </section>
+    </div>
+  </div>
+  
+</body>
+</html>

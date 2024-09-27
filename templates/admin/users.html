@@ -1,0 +1,15 @@
+{% extends 'index.html'%} {% block title %}List of Users{% endblock %} {% block
+content %}
+<div class="user-container">
+  <div class="user-content">
+    <a href="{{url_for('farmer_register')}}" class="user-link-farmer">
+      <span>Farmer</span>
+    </a>
+  </div>
+  <div class="user-content">
+    <a href="{{url_for('vet_register')}}" class="user-link-vet">
+      <span>Veterinarian</span>
+    </a>
+  </div>
+</div>
+{% endblock %}

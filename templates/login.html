@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="{{url_for('static', filename='style.css')}}">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="login-page">
+    <div class="login-container">
+      <h1>GOAT FARM</h1>
+      <form action="{{url_for('login')}}" method="post">
+        <div class="form-login">
+          <input type="email" name="email" id="email" placeholder="Email" required>
+        </div>
+        <div class="form-login password-field">
+          <input type="password" name="password" id="password" placeholder="Password" required>
+          <i class="fas fa-eye" id="toggle-password"></i>
+        </div>
+        <div class="form-login">
+          <select name="user_type" id="user_type" required>
+            <option value="admin">Admin</option>
+            <option value="farmer">Farmer</option>
+            <option value="vet">Veterinarian</option>
+          </select>
+        </div>  
+        <div class="form-login">
+          <button type="submit">Login</button>
+        </div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="error-message">
+              {% for category, message in messages %}
+                {% if category == 'error' %}
+                  <p>{{ message }}</p>
+                {% endif %}
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+      </form>
+    </div>
+  </div>
+  
+  <script>
+    // Toggle password visibility
+    const togglePassword = document.querySelector('#toggle-password');
+    const passwordInput = document.querySelector('#password');
+
+    togglePassword.addEventListener('click', function (e) {
+      // Toggle the type attribute
+      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      passwordInput.setAttribute('type', type);
+      
+      // Toggle the eye / eye-slash icon
+      this.classList.toggle('fa-eye-slash');
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,218 @@
+{% extends 'index.html' %}
+{% block title %} Admin Page {% endblock %}
+{% block content %}
+<h1>Admin Page</h1>
+<section class="dashboard-cards">
+  <div class="card">
+    <div class="card-body">
+      <h3>Number of Farmers and Veterinarians</h2>
+      <div class="chartBox">
+        <canvas id="number_of_workers"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h3>Number of Goat (Gender)</h2>
+      <div class="chartBox">
+        <canvas id="num_GoatGender"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h3>Number of Goat (Breed)</h2>
+      <div class="chartBox">
+        <canvas id="num_GoatBreed"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="dashboard-cards2">
+  <h1>Record Transactions for Feed Price</h1>
+  <canvas id="myLineChart"></canvas>
+</section>
+
+<script>
+  // Function to fetch monthly spend data and render the line chart
+  async function renderChart() {
+      // Fetch data from the server
+      const response = await fetch('/recordPrice');
+      const data = await response.json();
+
+      // Extract months and total amounts from the data
+      const labels = data.map(item => item.month);
+      const totalAmounts = data.map(item => item.total_amount);
+
+      // Set up the chart configuration
+      const ctx = document.getElementById('myLineChart').getContext('2d');
+      new Chart(ctx, {
+          type: 'line',
+          data: {
+              labels: labels,  // Months
+              datasets: [{
+                  label: 'Total Spend (RM)',
+                  data: totalAmounts,  // Total spend for each month
+                  borderColor: 'rgba(75, 192, 192, 1)',
+                  tension: 0.1,
+                  fill: false
+              }]
+          },
+          options: {
+              responsive: true,
+              scales: {
+                  x: {
+                      title: {
+                          display: true,
+                          text: 'Month'
+                      }
+                  },
+                  y: {
+                      title: {
+                          display: true,
+                          text: 'Total Spend (RM)'
+                      }
+                  }
+              }
+          }
+      });
+  }
+
+  // Call the function to render the chart
+  renderChart();
+</script>
+
+<script>
+  // Plugin for displaying text in the middle of the doughnut chart
+  Chart.register({
+    id: 'doughnutCenterText',
+    beforeDraw: function(chart) {
+      if (chart.config.type === 'doughnut') {
+        const ctx = chart.ctx;
+        const width = chart.width;
+        const height = chart.height;
+        const total = chart.config.data.datasets[0].data.reduce((a, b) => a + b, 0);  // Get total count
+
+        ctx.restore();
+        const fontSize = (height / 220).toFixed(2);
+        ctx.font = `${fontSize}em sans-serif`;
+        ctx.textBaseline = 'middle';
+
+        const text = `Total:\n ${total}`
+        const textX = Math.round((width - ctx.measureText(text).width) / 2);
+        const textY = height / 1.8;
+
+        ctx.fillText(text, textX, textY);
+        ctx.save();
+      }
+    }
+  });
+</script>
+
+
+<script>
+  fetch('/number_of_workers')
+      .then(response => response.json())
+      .then(data => {
+
+          const ctx = document.getElementById('number_of_workers').getContext('2d');
+          new Chart(ctx, {
+              type: 'doughnut',
+              data: {
+                labels: ['Farmers','Veterinarians'],
+                datasets: [{
+                    data: [data.farmers_count, data.vets_count],
+                    backgroundColor: ['#28A745', '#007BFF']
+                }]
+              },
+              options: {
+                responsive: true,
+                plugins: {
+                  legend: {
+                    position: 'top',
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function(tooltipItem){
+                        return tooltipItem.label + ': ' + tooltipItem.raw
+                      }
+                    }
+                  }
+                }
+              }
+            });
+      })
+      .catch(error => console.error('Error fetching data:',error));
+</script>
+
+<script>
+  fetch('/num_GoatGender')
+      .then(response => response.json())
+      .then(data => {
+          
+        const ctx = document.getElementById('num_GoatGender').getContext('2d');
+        new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Male','Female'],
+            datasets: [{
+              data: [data.goatGender_count, data.goatGender2_count],
+              backgroundColor: ['#36A2EB','#FF6384']
+            }]
+          },
+          options: {
+            responsive: true,
+            plugin: {
+              legend: {
+                position: 'top',
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(tooltipItem){
+                    return tooltipItem.label + ': ' + tooltipItem.raw
+                  }
+                }
+              }
+            }
+          }
+        })
+      })
+      .catch(error => console.error('Error fetching data: ',error))
+</script>
+
+<script>
+  fetch('/num_GoatBreed')
+      .then(response => response.json())
+      .then(data => {
+        
+        const ctx = document.getElementById('num_GoatBreed').getContext('2d');
+        new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Alpine','Boer'],
+            datasets: [{
+              data: [data.goatBreed_count, data.goatBreed2_count],
+              backgroundColor: ['#6C757D','#800000']
+            }]
+          },
+          options:{
+            responsive: true,
+            plugin: {
+              legend: {
+                position: 'top',
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(tooltipItem){
+                    return tooltipItem.label + ': ' + tooltipItem.raw
+                  }
+                }
+              }
+            }
+          }
+        })
+      })
+      .catch(error => console.error('Error fetching data: ', error))
+</script>
+
+{% endblock %}

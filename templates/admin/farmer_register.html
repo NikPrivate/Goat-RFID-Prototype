@@ -1,0 +1,29 @@
+{% extends 'index.html' %}
+{% block title %} Farmer Registration {% endblock %}
+{% block content %}
+<h1>Farmer Registration</h1>
+<form action="{{url_for('add_farmer')}}" method="POST">
+  <div class="form-group">
+    <label for="name">Name</label>
+    <input type="text" name="name" id="name" required>
+  </div>
+  <div>
+    <label for="email">Email</label>
+    <input type="email" name="email" id="email" required>
+  </div>
+  <div>
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" required>
+  </div>
+  <div>
+    <label for="date_time">Register Time</label>
+    <input type="datetime-local" name="date_time" id="date_time" required>
+  </div>
+  <div>
+    <button type="submit">Register</button>
+  </div>
+  <div class="view-back-container">
+    <a href="{{url_for('view_Farmer')}}" class="link-view-back">View Registered Farmers</a>
+  </div>
+</form>
+{% endblock %}

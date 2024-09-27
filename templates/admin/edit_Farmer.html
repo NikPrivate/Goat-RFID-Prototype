@@ -1,0 +1,29 @@
+{% extends 'index.html' %}
+{% block title %}Edit Farmer{% endblock %}
+{% block content %}
+<h1>Edit Farmer</h1>
+<form action="{{url_for('edit_Farmer', id=farmer.Id)}}" method="POST">
+  <div>
+    <label for="name">Name</label>
+    <input type="text" name="name" id="name" value="{{farmer.name}}" required> 
+  </div>
+  <div>
+    <label for="email">Email</label>
+    <input type="email" name="email" id="email" value="{{farmer.email}}">
+  </div>
+  <div>
+    <label for="password">Password</label>
+    <input type="text" name="password" id="password" value="{{farmer.password}}" required>
+  </div>
+  <div>
+    <label for="date_time">Register Time</label>
+    <input type="datetime-local" id="date_time" name="date_time" value="{{farmer.date_time}}" required>
+  </div>
+  <div>
+    <button type="submit">Update</button>
+  </div>
+  <div>
+    <a href="{{url_for('view_Farmer')}}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends 'index.html' %}
+{% block title %}Veterinarian Registration{% endblock %}
+{% block content %}
+<h1>Veterinarian Registration</h1>
+<form action="{{url_for('add_Vet')}}" method="POST">
+  <div>
+    <label for="name">Name</label>
+    <input type="text" name="name" id="name" required>
+  </div>
+  <div>
+    <label for="email">Email</label>
+    <input type="email" name="email" id="email" required>
+  </div>
+  <div>
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" required>
+  </div>
+  <div>
+    <label for="date_time">Register Time</label>
+    <input type="datetime-local" id="date_time" name="date_time" required>
+  </div>
+  <div>
+    <button type="submit">Register</button>
+  </div>
+  <div class="view-back-container">
+    <a href="{{url_for('view_Vet')}}" class="link-view-back">View Registered Veterinarian</a>
+  </div>
+</form>
+{% endblock %}

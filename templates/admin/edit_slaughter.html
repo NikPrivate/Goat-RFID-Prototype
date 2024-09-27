@@ -1,0 +1,45 @@
+{% extends 'index.html' %}
+{% block title %}Edit Slaughter{% endblock %}
+{% block content %}
+<h1>Edit Slaughter</h1>
+<form action="{{url_for('edit_slaughter', id=slaughter.uid)}}" method="POST">
+  <div>
+    <label for="uid">Uid</label>
+    <input type="text" name="uid" id="uid" value="{{slaughter.uid}}" readonly>
+  </div>
+  <div>
+    <label for="gender">Gender</label>
+    <input type="text" name="gender" id="gender" value="{{slaughter.gender}}">
+  </div>
+  <div>
+    <label for="register_time">Register Time</label>
+    <input type="datetime-local" name="register_time" id="register_time" value="{{slaughter.register_time}}">
+  </div>
+  <div>
+    <label for="weight">Weight</label>
+    <input type="text" name="weight" id="weight" value="{{slaughter.weight}}">
+  </div>
+  <div>
+    <label for="sold_amount">Sold Amount</label>
+    <input type="text" name="sold_amount" id="sold_amount" value="{{slaughter.sold_amount}}">
+  </div>
+  <div>
+    <label for="buyer">Buyer</label>
+    <input type="text" name="buyer" id="buyer" value="{{slaughter.buyer}}">
+  </div>
+  <div>
+    <label for="cause_of_death">Cause of Death</label>
+    <input type="text" name="cause_of_death" id="cause_of_death" value="{{slaughter.cause_of_death}}">
+  </div>
+  <div>
+    <label for="slaughter_cost">Slaughter Cost</label>
+    <input type="text" id="slaughter_cost" name="slaughter_cost" value="{{slaughter.slaughter_cost}}">
+  </div>
+  <div>
+    <button type="submti">Update</button>
+  </div>
+  <div>
+    <a href="{{url_for('view_slaughter')}}" class="link-view-back">Cancel</a>
+  </div>
+</form>
+{% endblock %}
