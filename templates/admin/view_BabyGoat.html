@@ -52,4 +52,29 @@ block content %}
   >
 </div>
 
+<h1>Family Tree</h1>
+<div class="tree">
+  {% for parent_uid, data in family_tree.items() %}
+  <div class="parents">
+    <div class="parent">
+      <div class="family-box">
+        <p>
+          <strong>Parent UID: {{ parent_uid }}</strong>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="connector"></div>
+
+  <div class="children">
+    {% for child_uid in data.children %}
+    <div class="family-box">
+      <p><strong>Child UID: {{ child_uid }}</strong></p>
+    </div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+</div>
+
 {% endblock %}

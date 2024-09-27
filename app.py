@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, jsonify, flash, url_for, session
 from datetime import datetime
+from collections import defaultdict
 import mysql.connector
 import hashlib
 
@@ -199,6 +200,7 @@ def add_BabyGoat():
     health_status = request.form['health_status']
     treatment_time = request.form['treatment_time']
     
+    
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
@@ -219,7 +221,9 @@ def add_BabyGoat():
     
 @app.route('/view_BabyGoat')
 def view_BabyGoat():
+    
     try:
+        
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor(dictionary=True)
         cursor.execute("SELECT * FROM baby_goat")
@@ -231,10 +235,13 @@ def view_BabyGoat():
             
             if result['treatment_time']:
                 result['treatment_time'] = result['treatment_time'].strftime('%Y-%m-%dT%H:%M')
+         # Fetch family data and build family tree
+        family_data = birth_cert()  # Ensure this function retrieves all family data
+        family_tree = build_birth_tree(family_data)  # Build the family tree
         
         cursor.close()
         conn.close()
-        return render_template('admin/view_BabyGoat.html', babygoats = results)
+        return render_template('admin/view_BabyGoat.html', babygoats = results, family_tree=family_tree, family_data=family_data)
         
         
     except mysql.connector.Error as err:
@@ -537,9 +544,11 @@ def delete_slaughter(id):
         print(f"Error: {err}")
         return "An error occured while trying to delete the slaughter details", 500
     
+    
 @app.route('/breeding')
 def breeding():
-    return render_template('admin/breeding.html')
+    
+    return render_template('admin/view_BabyGoat.html')
 
 @app.route('/add_breeding', methods=['POST'])
 def add_breeding():
@@ -1128,9 +1137,39 @@ def recordPrice():
     # Return the data as JSON
     return jsonify(monthly_data)
 
+def birth_cert():
+    
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor(dictionary=True)
+    
+    cursor.execute("""
+        SELECT uid, mom_uid, dad_uid FROM baby_goat
+        """)
 
+    family = cursor.fetchall()
+    conn.close()
+    
+    return family
 
+def build_birth_tree(family_data):
+    family_tree = {}
+    
+    for goat in family_data:
+        uid = goat['uid']
+        mom_uid = goat['mom_uid']
+        dad_uid = goat['dad_uid']
+        
+        # Create a unique key for the family (mom + dad combination)
+        family_key = f"{mom_uid} and {dad_uid}"
+        
+        # Ensure that the family (mom + dad) is in the tree
+        if family_key not in family_tree:
+            family_tree[family_key] = {'mom_uid': mom_uid, 'dad_uid': dad_uid, 'children': []}
+        
+        # Add the child under this family node
+        family_tree[family_key]['children'].append(uid)
 
+    return family_tree
 
 
 
