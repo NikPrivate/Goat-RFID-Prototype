@@ -1,0 +1,15 @@
+{% extends 'farmer.html' %} {% block title %}Type of Goats{% endblock %} {%
+block content %}
+<div class="user-container">
+  <div class="user-content">
+    <a href="{{url_for('farmer_addGoat')}}" class="goat-link">
+      <span>Goats</span>
+    </a>
+  </div>
+  <div>
+    <a href="{{url_for('farmer_babyGoat')}}" class="goat-link"
+      ><span>Baby Goats</span></a
+    >
+  </div>
+</div>
+{% endblock %}

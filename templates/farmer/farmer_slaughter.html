@@ -1,0 +1,102 @@
+{% extends 'farmer.html' %} {% block title %} Slaughter {% endblock %} {% block
+content %}
+<h1>Slaughter</h1>
+<p>UID: <span id="uidDisplay">Waiting...</span></p>
+<div id="details">Slaughtered Goats</div>
+
+<script>
+  let uidFound = false;
+
+  async function fetchUID() {
+    if (uidFound) return; // Stop fetchUID if a UID is found and form is displayed.
+
+    try {
+      const response = await fetch("/latest_uid");
+      const data = await response.json();
+      const uid = data.uid || "No UID scanned";
+      document.getElementById("uidDisplay").innerText = uid;
+
+      if (uid !== "No UID scanned") {
+        uidFound = true; // Stop fetching after UID is found
+        const detailsResponse = await fetch(`/uid_details/${uid}`);
+        const details = await detailsResponse.json();
+        displayDetails(details);
+      } else {
+        document.getElementById("details").innerHTML =
+          "<p>No details available</p>";
+      }
+    } catch (error) {
+      console.error("Error fetching UID:", error);
+    }
+  }
+
+  function displayDetails(details) {
+    if (details) {
+      document.getElementById("details").innerHTML = `
+              <form id="goatForm" action="/farmer_submitSlaughter" method="POST">
+                  <div>
+                      <label for="uid">UID</label>
+                      <input type="text" id="uid" name="uid" value="${
+                        details.uid
+                      }" readonly>
+                  </div>
+                  <div class="breed-goat-register">
+                      <label for="gender">Gender</label>
+                      <select id="gender" name="gender" class="form-select">
+                          <option value="Male" ${
+                            details.gender === "Male" ? "selected" : ""
+                          }>Male</option>
+                          <option value="Female" ${
+                            details.gender === "Female" ? "selected" : ""
+                          }>Female</option>
+                      </select>
+                  </div>
+                  <div>
+                      <label for="register_time">Register Time</label>
+                      <input type="datetime-local" id="register_time" name="register_time" value="${formatDate(
+                        details.register_time
+                      )}">
+                  </div>
+                  <div>
+                      <label for="weight">Weight (kg)</label>
+                      <input type="text" id="weight" name="weight" required>
+                  </div>
+                  <div>
+                      <label for="sold_amount">Sold Amount</label>
+                      <input type="text" id="sold_amount" name="sold_amount" required>
+                  </div>
+                  <div>
+                      <label for="buyer">Buyer</label>
+                      <input type="text" id="buyer" name="buyer" required>
+                  </div>
+                  <div>
+                      <label for="cause_of_death">Cause of Death</label>
+                      <input type="text" id="cause_of_death" name="cause_of_death" required>
+                  </div>
+                  <div>
+                      <label for="slaughter_cost">Slaughter Cost</label>
+                      <input type="text" id="slaughter_cost" name="slaughter_cost" required>
+                  </div>
+                  <div>
+                    <button type="submit">Submit</button>
+                  </div>
+                  <div class="view-back-container">
+                    <a href="{{url_for('farmer_viewSlaughter')}}" class="link-view-back">View</a>
+                  </div>
+              </form>`;
+    } else {
+      document.getElementById("details").innerHTML =
+        "<p>No details available</p>";
+    }
+  }
+
+  function formatDate(dateString) {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toISOString().slice(0, 16); // Format to YYYY-MM-DDTHH:MM
+  }
+
+  setInterval(fetchUID, 1000); // Fetch UID every second
+</script>
+
+{% endblock %}

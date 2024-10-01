@@ -1,4 +1,4 @@
-{% extends 'index.html' %}
+{% extends 'farmer.html' %}
 {% block title %} Feed Price Calculator {% endblock %}
 {% block content %}
 <h1>Feed Price Calculator</h1>
@@ -27,21 +27,20 @@
   {% endif %}
 </form>
 
-<form action="{{url_for('farmer_addPrice')}}" method="POST">
-  <h1>Record Transactions</h1>
+<form action="{{url_for('farmer_editPrice', id=feed_price.Id)}}" method="POST">
   <div>
     <label class="form-label" for="time">Time</label>
-    <input type="datetime-local" id="time" name="time" required>
+    <input type="datetime-local" id="time" name="time" value="{{feed_price.time}}" required>
   </div>
   <div>
     <label for="total_spend">Total Spend</label>
-    <input type="text" id="total_spend" name="total_spend"  required>
+    <input type="text" id="total_spend" name="total_spend" value="{{feed_price.total_spend}}" required>
   </div>
   <div>
-    <button type="submit">Add</button>
+    <button type="submit">Update</button>
   </div>
   <div class="view-back-container"></div>
-    <a href="{{url_for('farmer_viewPrice')}}" class="link-view-back">View Total Spend</a>
+    <a href="{{url_for('farmer_viewPrice')}}" class="link-view-back">Cancel</a>
   </div>
 </form>
 {% endblock %}

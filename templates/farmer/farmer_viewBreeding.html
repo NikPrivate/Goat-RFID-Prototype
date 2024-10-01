@@ -1,0 +1,46 @@
+{% extends 'farmer.html' %}
+{% block title %}View Breeding Programme{% endblock %}
+{% block content %}
+<h1>View Breeding Program</h1>
+
+{% if breedings %}
+<div class="details">
+  <table>
+    <thead>
+      <tr>
+        <th>UID</th>
+        <th>Partner UID</th>
+        <th>Program Date</th>
+        <th>Pregnancy Check Date</th>
+        <th>Expected Birth Date</th>
+        <th>Breeding method</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for breeding in breedings %}
+        <tr>
+          <td>{{breeding.uid}}</td>
+          <td>{{breeding.partner_uid}}</td>
+          <td>{{breeding.program_date}}</td>
+          <td>{{breeding.pregnancy_check_date}}</td>
+          <td>{{breeding.expected_birth_date}}</td>
+          <td>{{breeding.breeding_method}}</td>
+          <td class="action">
+            <a href="{{url_for('farmer_editBreeding', id=breeding.uid)}}" class="edit">Edit</a>
+            <a href="{{url_for('farmer_deleteBreeding', id=breeding.uid)}}" onclick="return confirm('Are you sure you want to delete this breeding details?')" class="delete">Delete</a>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+ <p>No breeding found</p>
+{% endif %}
+
+<div class="view-back-container"></div>
+  <a href="{{url_for('farmer_breeding')}}" class="link-view-back">Back to Registration</a>
+</div>
+
+{% endblock %}

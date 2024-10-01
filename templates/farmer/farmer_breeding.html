@@ -1,0 +1,80 @@
+{% extends 'farmer.html' %} {% block title %}Breeding Program{% endblock %} {%
+block content %}
+<h1>Breeding Program</h1>
+<span id="uid"></span>
+<div id="details">Register breed program</div>
+
+<script>
+  let focusedField = "uid"; // Track the focused input field
+  let lastUID = ""; // Store the last UID to avoid unnecessary updates
+
+  // Set the currently focused field when an input is clicked
+  function setFocusedField(field) {
+    focusedField = field;
+  }
+
+  async function fetchUID() {
+    const response = await fetch("/latest_uid");
+    const data = await response.json();
+    const uid = data.uid || "No UID scanned";
+
+    // Only update the field if a new UID is scanned and it hasn't been set before
+    if (uid !== "No UID scanned" && uid !== lastUID) {
+      document.getElementById(focusedField).value = uid;
+      lastUID = uid; // Update the lastUID to avoid duplicate updates
+
+      // Fetch and display goat details only for the first UID field
+      if (focusedField === "uid") {
+        const detailsResponse = await fetch(`/uid_details/${uid}`);
+        const details = await detailsResponse.json();
+        displayDetails(details);
+      }
+    }
+  }
+
+  function displayDetails(details) {
+    if (details) {
+      document.getElementById("details").innerHTML = `
+          <form id="goatForm" action="/farmer_addBreeding" method="POST">
+            <div>
+              <label for="uid">UID</label>
+              <input type="text" id="uid" name="uid" onclick="setFocusedField('uid')" value="${details.uid}" readonly>
+            </div>
+            <div>
+              <label for="uid2">Partner UID</label>
+              <input type="text" id="partner_uid" name="partner_uid" onclick="setFocusedField('partner_uid')" value="${details.partner_uid}" readonly>
+            </div>
+            <div>
+              <label for="program_date">Program Date</label>
+              <input type="datetime-local" id="program_date" name="program_date">
+            </div>
+            <div>
+              <label for="pregnancy_check_date">Pregnancy Check Date</label>
+              <input type="datetime-local" id="pregnancy_check_date" name="pregnancy_check_date">
+            </div>
+            <div>
+              <label for="expected_birth_date">Expected Birth Date</label>
+              <input type="datetime-local" id="expected_birth_date" name="expected_birth_date">
+            </div>
+            <div>
+              <label for="breeding_method">Breeding Method</label>
+              <input type="text" id="breeding_method" name="breeding_method" placeholder="AI(Artificial insemination) / Hand mating / Pen mating">
+            </div>
+            <div>
+              <button type="submit">Register</button>
+            </div>
+            <div class="view-back-container">
+              <a href="{{url_for('farmer_viewBreeding')}}" class="link-view-back">View</a>
+            </div>
+          </form>`;
+    } else {
+      document.getElementById("details").innerHTML =
+        "<p>No details available</p>";
+    }
+  }
+
+  // Fetch UID every 2 seconds (2000ms) and insert it into the focused input
+  setInterval(fetchUID, 1000);
+</script>
+
+{% endblock %}

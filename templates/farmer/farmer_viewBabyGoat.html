@@ -1,0 +1,82 @@
+{% extends 'farmer.html' %} {% block title %}View Baby Goat{% endblock %} {%
+block content %}
+<h1>View Baby Goat Details</h1>
+
+{% if babygoats %}
+<div class="details">
+  <table>
+    <thead>
+      <tr>
+        <th>UID</th>
+        <th>Mother UID</th>
+        <th>Father UID</th>
+        <th>Breed</th>
+        <th>Register Time</th>
+        <th>Health Status</th>
+        <th>Treatment Time</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for baby_goat in babygoats %}
+      <tr>
+        <td>{{baby_goat.uid}}</td>
+        <td>{{baby_goat.mom_uid}}</td>
+        <td>{{baby_goat.dad_uid}}</td>
+        <td>{{baby_goat.breed}}</td>
+        <td>{{baby_goat.register_time}}</td>
+        <td>{{baby_goat.health_status}}</td>
+        <td>{{baby_goat.treatment_time}}</td>
+        <td>
+          <a
+            href="{{url_for('farmer_editBabyGoat', id=baby_goat.uid)}}"
+            class="edit"
+            >Edit</a
+          >
+          <a
+            href="{{url_for('farmer_deleteBabyGoat', id=baby_goat.uid)}}"
+            onclick="return confirm('Are you sure you want to delete this baby goat details? ')"
+            class="delete"
+            >Delete</a
+          >
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p>No baby goat details</p>
+{% endif %}
+<div class="view-back-container">
+  <a href="{{url_for('farmer_babyGoat')}}" class="link-view-back"
+    >Back to Registration</a
+  >
+</div>
+
+<h1>Family Tree</h1>
+<div class="tree">
+  {% for parent_uid, data in family_tree.items() %}
+  <div class="parents">
+    <div class="parent">
+      <div class="family-box">
+        <p>
+          <strong>Parent UID: {{ parent_uid }}</strong>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="connector"></div>
+
+  <div class="children">
+    {% for child_uid in data.children %}
+    <div class="family-box">
+      <p><strong>Child UID: {{ child_uid }}</strong></p>
+    </div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

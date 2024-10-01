@@ -1,0 +1,97 @@
+{% extends 'farmer.html' %} {% block title %}View Total Spend{% endblock %} {%
+block content %} {% if feedPrice %}
+<div class="details">
+  <table>
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>Total Spend</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for feed_price in feedPrice %}
+      <tr>
+        <td>{{feed_price.time}}</td>
+        <td>{{feed_price.total_spend}}</td>
+        <td class="action">
+          <a
+            href="{{url_for('farmer_editPrice', id=feed_price.Id)}}"
+            class="edit"
+            >Edit</a
+          >
+          <a
+            href="{{url_for('farmer_deletePrice', id=feed_price.Id)}}"
+            onclick="return confirm ('Are you sure you want to delete this record?')"
+            class="delete"
+            >Delete</a
+          >
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p>No records found.</p>
+{% endif %}
+<div class="view-back-container">
+  <a href="{{url_for('farmer_feedPriceCalc')}}" class="link-view-back"
+    >Back to Registration</a
+  >
+</div>
+
+<canvas id="myLineChart"></canvas>
+
+<script>
+  // Function to fetch monthly spend data and render the line chart
+  async function renderChart() {
+    // Fetch data from the server
+    const response = await fetch("/recordPrice");
+    const data = await response.json();
+
+    // Extract months and total amounts from the data
+    const labels = data.map((item) => item.month);
+    const totalAmounts = data.map((item) => item.total_amount);
+
+    // Set up the chart configuration
+    const ctx = document.getElementById("myLineChart").getContext("2d");
+    new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels, // Months
+        datasets: [
+          {
+            label: "Total Spend (RM)",
+            data: totalAmounts, // Total spend for each month
+            borderColor: "rgba(75, 192, 192, 1)",
+            tension: 0.1,
+            fill: false,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: "Month",
+            },
+          },
+          y: {
+            title: {
+              display: true,
+              text: "Total Spend (RM)",
+            },
+          },
+        },
+      },
+    });
+  }
+
+  // Call the function to render the chart
+  renderChart();
+</script>
+
+{% endblock %}

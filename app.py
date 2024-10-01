@@ -41,7 +41,7 @@ def login():
             if user_type == 'admin':
                 return redirect(url_for('admin_page'))
             elif user_type == 'farmer':
-                return redirect(url_for('farmer'))
+                return redirect(url_for('farmer_page'))
             elif user_type == 'vet':
                 return redirect(url_for('vet'))
         
@@ -548,7 +548,7 @@ def delete_slaughter(id):
 @app.route('/breeding')
 def breeding():
     
-    return render_template('admin/view_BabyGoat.html')
+    return render_template('admin/breeding.html')
 
 @app.route('/add_breeding', methods=['POST'])
 def add_breeding():
@@ -1031,7 +1031,7 @@ def edit_Vet(id):
         
     cursor.close()
     conn.close()
-    
+        
     return render_template('admin/edit_Vet.html', vet=vet)
 
 @app.route('/delete_Vet/<int:id>', methods=['POST', 'GET'])
@@ -1170,6 +1170,556 @@ def build_birth_tree(family_data):
         family_tree[family_key]['children'].append(uid)
 
     return family_tree
+
+@app.route('/farmer_page')
+def farmer_page():
+    return render_template('/farmer/farmer_page.html')
+
+@app.route('/farmer_rfid')
+def farmer_rfid():
+    return render_template('/farmer/farmer_rfid.html')
+
+@app.route('/farmer_goat')
+def farmer_goat():
+    return render_template('/farmer/farmer_goat.html')
+
+@app.route('/farmer_addGoat.html')
+def farmer_addGoat():
+    return render_template('/farmer/farmer_addGoat.html')
+
+@app.route('/farmer_updateGoat/<uid>', methods=['POST'])
+def farmer_update_Goat_submit(uid):
+    gender = request.form['gender']
+    breed = request.form['breed']
+    age = request.form['age']
+    register_time = request.form['register_time']
+    
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE goat SET gender=%s, breed=%s, age=%s, register_time=%s WHERE uid=%s
+        """, (gender, breed, age, register_time, uid))
+        conn.commit()
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    finally:
+        cursor.close()
+        conn.close()
+
+    return redirect(url_for('farmer_rfid'))
+
+@app.route('/farmer_babyGoat')
+def farmer_babyGoat():
+    return render_template('/farmer/farmer_babyGoat.html')
+
+@app.route('/farmer_addBabyGoat', methods=['POST'])
+def farmer_addBabyGoat():
+    uid = request.form['uid']
+    mom_uid = request.form['mom_uid']
+    dad_uid = request.form['dad_uid']
+    breed = request.form['breed']
+    register_time = request.form['register_time']
+    health_status = request.form['health_status']
+    treatment_time = request.form['treatment_time']
+    
+    
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO baby_goat (uid, mom_uid, dad_uid, breed, register_time, health_status, treatment_time) VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (uid, mom_uid, dad_uid, breed, register_time, health_status, treatment_time))
+        
+        conn.commit()
+        
+        cursor.close()
+        conn.close()
+        
+        return redirect (url_for('farmer_babyGoat'))
+    
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return "An error occured while inserting the baby goat details", 500
+    
+    
+@app.route('/farmer_viewBabyGoat')
+def farmer_viewBabyGoat():
+    
+    try:
+        
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM baby_goat")
+        results = cursor.fetchall()
+        
+        for result in results:
+            if result['register_time']:
+                result['register_time'] = result['register_time'].strftime('%Y-%m-%dT%H:%M')
+            
+            if result['treatment_time']:
+                result['treatment_time'] = result['treatment_time'].strftime('%Y-%m-%dT%H:%M')
+         # Fetch family data and build family tree
+        family_data = birth_cert()  # Ensure this function retrieves all family data
+        family_tree = build_birth_tree(family_data)  # Build the family tree
+        
+        cursor.close()
+        conn.close()
+        return render_template('farmer/farmer_viewBabyGoat.html', babygoats = results, family_tree=family_tree, family_data=family_data)
+        
+        
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return "An error is occurred while viewing the baby goat details"
+    
+@app.route('/farmer_editBabyGoat/<string:id>', methods=['GET', 'POST'])
+def farmer_editBabyGoat(id):
+    try:
+        conn  = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor(dictionary=True)
+        
+        if request.method == 'POST':
+            
+            mom_uid = request.form['mom_uid']
+            dad_uid = request.form['dad_uid']
+            breed = request.form['breed']
+            register_time = request.form['register_time']
+            health_status = request.form['health_status']
+            treatment_time = request.form['treatment_time']
+            
+            cursor.execute("""
+                UPDATE baby_goat
+                SET mom_uid=%s, dad_uid=%s, breed=%s, register_time=%s, health_status=%s, treatment_time=%s WHERE uid=%s
+            """, (mom_uid, dad_uid, breed, register_time, health_status, treatment_time, id))
+            
+            conn.commit()
+
+            cursor.close()
+            conn.close()
+            
+            return redirect(url_for('farmer_viewBabyGoat'))
+        
+        cursor.execute("SELECT * FROM baby_goat WHERE uid=%s",(id,))
+        babygoats = cursor.fetchall()
+        
+        for baby_goat in babygoats:
+            if baby_goat['register_time']:
+                baby_goat['register_time'] = baby_goat['register_time'].strftime('%Y-%m-%dT%H:%M')
+            
+            if baby_goat['treatment_time']:
+                baby_goat['treatment_time'] = baby_goat['treatment_time'].strftime('%Y-%m-%dT%H:%M')
+                
+        cursor.close()
+        conn.close()
+        
+        return render_template('admin/farmer_editBabyGoat.html', baby_goat=babygoats)
+    
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return "An error occured while updating the baby goat details", 500
+    
+@app.route('/farmer_deleteBabyGoat/<string:id>', methods=['POST', 'GET'])
+def farmer_deleteBabyGoat(id):
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM baby_goat WHERE uid=%s",(id,))
+        conn.commit()
+        
+        cursor.close()
+        conn.close()
+        
+        return redirect(url_for('farmer_viewBabyGoat'))
+        
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return "An error occured while trying to delete the baby goat details", 500
+    
+@app.route('/farmer_slaughter')
+def farmer_slaughter():
+    return render_template('/farmer/farmer_slaughter.html')
+
+@app.route('/farmer_viewSlaughter')
+def farmer_viewSlaughter():
+    return render_template('/farmer/farmer_viewSlaughter.html')
+
+
+@app.route('/farmer_submitSlaughter', methods=['POST'])
+def farmer_submitSlaughter():
+    weight = request.form['weight']
+    sold_amount = request.form['sold_amount']
+    buyer = request.form['buyer']
+    cause_of_death = request.form['cause_of_death']
+    slaughter_cost = request.form['slaughter_cost']
+    uid = request.form['uid']  # Only get UID from the form
+    
+
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+
+        # Insert into slaughter table using data from goat table
+        cursor.execute("""
+            INSERT INTO slaughter (uid, gender, register_time, weight, sold_amount, buyer, cause_of_death, slaughter_cost)
+            SELECT uid, gender, register_time, %s, %s, %s, %s, %s
+            FROM goat
+            WHERE uid = %s
+        """, (weight, sold_amount, buyer, cause_of_death, slaughter_cost, uid))
+        
+        conn.commit()
+        
+        cursor.close()
+        conn.close()
+
+        return redirect(url_for('farmer_viewSlaughter'))
+    
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return "An error occurred while submitting the slaughter details.", 500
+    
+
+@app.route('/farmer_editSlaughter/<string:id>', methods=['GET', 'POST'])
+def farmer_editSlaughter():
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor(dictionary=True)
+    
+    if request.method == 'POST':
+        
+        gender = request.form['gender']
+        register_time = request.form['register_time']
+        weight = request.form['weight']
+        sold_amount = request.form['sold_amount']
+        buyer = request.form['buyer']
+        cause_of_death = request.form['cause_of_death']
+        slaughter_cost = request.form['slaughter_cost']
+        
+        cursor.execute("""
+            UPDATE slaughter SET gender=%s, register_time=%s, weight=%s, sold_amount=%s, buyer=%s, cause_of_death=%s, slaughter_cost=%s
+        """, (gender, register_time, weight, sold_amount, buyer, cause_of_death, slaughter_cost))
+        
+        conn.commit()
+        
+        cursor.close()
+        conn.close()
+        
+        return redirect(url_for('farmer_viewSlaughter'))
+    
+    cursor.execute("SELECT * FROM slaughter WHERE uid=%s", (id,))
+    slaughter = cursor.fetchone()
+    
+    if slaughter and slaughter['register_time']:
+        slaughter['register_time'] = slaughter['register_time'].strftime('%Y-%m-%dT%H:%M')
+    
+    cursor.close()
+    conn.close()
+
+    return render_template('admin/farmer_editSlaughter.html', slaughter=slaughter)
+    
+@app.route('/farmer_deleteSlaughter/<string:id>', methods=['POST', 'GET'])
+def farmer_deleteSlaughter(id):
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM slaughter WHERE uid=%s",(id,))
+        conn.commit()
+        
+        cursor.close()
+        conn.close()
+        
+        return redirect(url_for('farmer_viewSlaughter'))
+    
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return "An error occured while trying to delete the slaughter details", 500
+    
+@app.route('/farmer_breeding')
+def farmer_breeding():
+    return render_template('/farmer/farmer_breeding.html')
+
+@app.route('/farmer_addBreeding', methods=['POST'])
+def farmer_addBreeding():
+    uid = request.form['uid']
+    partner_uid = request.form['partner_uid']
+    program_date = request.form['program_date']
+    pregnancy_check_date = request.form['pregnancy_check_date']
+    expected_birth_date = request.form['expected_birth_date']
+    breeding_method = request.form['breeding_method']
+    
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO breeding (uid, partner_uid, program_date, pregnancy_check_date, expected_birth_date, breeding_method) VALUES (%s, %s, %s, %s, %s, %s)
+        """, (uid, partner_uid, program_date, pregnancy_check_date, expected_birth_date, breeding_method))
+        
+        conn.commit()
+        
+        cursor.close()
+        conn.close()
+        
+        return redirect (url_for('farmer_breeding'))
+        
+        
+    
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return "Error on inserting breeding progran details into database", 500
+    
+@app.route('/farmer_viewBreeding')
+def farmer_viewBreeding():
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM breeding")
+        results = cursor.fetchall()
+        
+        for result in results:
+            if result['program_date']:
+                result['program_date'] = result['program_date'].strftime('%Y-%m-%dT%H:%M')
+                
+            if result['pregnancy_check_date']:
+                result['pregnancy_check_date'] = result['pregnancy_check_date'].strftime('%Y-%m-%dT%H:%M')
+            
+            if result['expected_birth_date']:
+                result['expected_birth_date'] = result['expected_birth_date'].strftime('%Y-%m-%dT%H:%M')
+                
+        cursor.close()
+        conn.close()
+        return render_template('farmer/farmer_viewBreeding.html', breedings=results )
+        
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return "An error is occurred while viewing the breeding program"
+
+@app.route('/farmer_editBreeding/<string:id>', methods=['GET', 'POST'])
+def farmer_editBreeding(id):
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor(dictionary=True)
+        
+        if  request.method == 'POST':
+            
+            partner_uid = request.form['partner_uid']
+            program_date = request.form['program_date']
+            pregnancy_check_date = request.form['pregnancy_check_date']
+            expected_birth_date = request.form['expected_birth_date']
+            breeding_method = request.form['breeding_method']
+            
+            cursor.execute("""
+                UPDATE breeding 
+                SET partner_uid=%s, program_date=%s, pregnancy_check_date=%s, expected_birth_date=%s, breeding_method=%s
+                WHERE uid=%s
+            """, (partner_uid, program_date, pregnancy_check_date, expected_birth_date, breeding_method, id))
+            
+            conn.commit()
+            
+            cursor.close()
+            conn.close()
+            
+            return redirect(url_for('farmer_viewBreeding'))
+        
+        cursor.execute("SELECT * FROM breeding WHERE uid=%s",(id,))
+        breedings = cursor.fetchall()
+        
+        for breeding in breedings:
+            if breeding['program_date']:
+                breeding['program_date'] = breeding['program_date'].strftime('%Y-%m-%dT%H:%M')
+                
+            if breeding['pregnancy_check_date']:
+                breeding['pregnancy_check_date'] = breeding['pregnancy_check_date'].strftime('%Y-%m-%dT%H:%M')
+                
+            if breeding['expected_birth_date']:
+                breeding['expected_birth_date'] = breeding['expected_birth_date'].strftime('%Y-%m-%dT%H:%M')
+        
+        cursor.close()
+        conn.close()
+        
+        return render_template('farmer/farmer_editBreeding.html', breeding=breedings)            
+        
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return "An error occured while updating the breeding program"
+    
+    
+@app.route('/farmer_deleteBreeding/<string:id>', methods=['POST', 'GET'])
+def farmer_deleteBreeding(id):
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM breeding WHERE uid=%s",(id,))
+        conn.commit()
+        
+        cursor.close()
+        conn.close()
+        
+        return redirect(url_for('farmer_viewBreeding'))
+    
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return "An error occured while trying to delete the breeding program date", 500
+    
+@app.route('/farmer_feedPriceCalc', methods=['GET','POST'])
+def farmer_feedPriceCalc():
+    result = numgoat = feedpergoat = priceperkg = months = None
+    if request.method == 'POST':
+        try:
+            # Get the form inputs
+            numgoat = float(request.form['numgoat'])
+            feedpergoat = float(request.form['feedpergoat'])
+            priceperkg = float(request.form['priceperkg'])
+            months = float(request.form['months'])
+            
+            result = (numgoat * feedpergoat) / 1000 * priceperkg * (months * 31)
+        
+        except ValueError:
+            result = "Invalid input. Please enter numbers only"
+    
+    return render_template('farmer/farmer_feedPriceCalc.html', result=result, numgoat=numgoat, feedpergoat=feedpergoat, priceperkg=priceperkg, months=months)
+
+@app.route('/farmer_addPrice', methods=['POST'])
+def farmer_addPrice():
+    
+    time = request.form['time']
+    total_spend = request.form['total_spend']
+    
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO feed_price (time, total_spend) VALUES (%s, %s)
+        """, (time, total_spend))
+        
+        conn.commit()
+        
+        cursor.close()
+        conn.close()
+        
+        return redirect(url_for('farmer_feedPriceCalc'))
+        
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return "An error is occured encountering when tracking the price", 500
+    
+@app.route('/farmer_viewPrice')
+def farmer_viewPrice():
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor =  conn.cursor(dictionary=True)
+        
+        cursor.execute("SELECT * FROM feed_price")
+        results = cursor.fetchall()
+        
+        for result in results:
+            if result['time']:
+                result['time'] = result['time'].strftime('%Y-%m-%d %H:%M')
+        
+        cursor.close()
+        conn.close()
+        return render_template('farmer/farmer_viewPrice.html', feedPrice=results)
+        
+        
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return "An error occured while fetching the details", 500
+
+@app.route('/farmer_editPrice/<int:id>', methods=['GET', 'POST'])
+def farmer_editPrice(id):
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor(dictionary=True)
+    
+    if request.method == 'POST':
+        
+        time = request.form['time']
+        total_spend = request.form['total_spend']
+        
+        cursor.execute("""
+            UPDATE feed_price SET time=%s, total_spend=%s
+        """, (time, total_spend))
+        
+        conn.commit()
+        
+        cursor.close()
+        conn.close()
+        
+        return redirect(url_for('farmer_viewPrice'))
+    
+    cursor.execute("SELECT * FROM feed_price WHERE Id=%s",(id,))
+    feed_price = cursor.fetchone()
+    
+    if feed_price and feed_price['time']:
+        feed_price['time'] = feed_price['time'].strftime('%Y-%m-%d T %H:%M')
+        
+    cursor.close()
+    conn.close()
+    
+    return render_template('farmer/farmer_editPrice.html', feed_price=feed_price)
+
+@app.route('/farmer_deletePrice/<int:id>', methods=['GET','POST'])
+def farmer_deletePrice(id):
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM feed_price WHERE Id=%s",(id,))
+        conn.commit()
+        
+        cursor.close()
+        conn.close()
+        
+        return redirect(url_for('farmer_viewPrice'))
+        
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return "An error occured while trying to delete the record details", 500
+    
+
+@app.route('/farmer_feedCalc', methods=['GET', 'POST'])
+def farmer_feedCalc():
+    weight = dmi = freshfodder = valueHay = konsentrat = None
+    content = {}
+    
+    pembesaran = 0.04
+    maintenance = 0.03
+    pembiakan = 0.036
+    menyusu = 0.043
+    
+    if request.method == 'POST':
+        try:
+            weight = float(request.form['weight'])
+            stage = request.form['stage']
+            hay = request.form['hay']
+            
+            if stage == 'pembesaran':
+                dmi = round(weight * 0.04,2)
+            elif stage == 'maintenance':
+                dmi = round(weight * 0.03,2)
+            elif stage == 'pembiakan':
+                dmi = round(weight * 0.036,2)
+            elif stage == 'menyusu':
+                dmi = round(weight * 0.043,2)
+                
+            freshfodder = round(dmi * 0.7 * 5.3,2)
+            if hay == 'yesHay':
+                valueHay = round(dmi * 0.1,2)
+            else:
+                valueHay = 0.0
+            konsentrat = round(dmi * 0.2,2)   
+            
+            content = {
+                'dmi' : dmi,
+                'freshfodder' : freshfodder,
+                'valueHay' : valueHay,
+                'konsentrat' : konsentrat
+            }
+            
+        
+        except ValueError:
+            result = "Invalid input"
+    
+    return render_template('farmer/farmer_feedCalc.html',weight=weight, dmi=dmi, freshfodder=freshfodder, valueHay=valueHay, konsentrat=konsentrat, content=content)
 
 
 

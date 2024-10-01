@@ -1,0 +1,114 @@
+{% extends 'farmer.html' %} {% block title %}Edit Baby Goat Details{% endblock
+%} {% block content %}
+<h1>Edit Baby Goat Details</h1>
+<span id="uid"></span>
+<div id="details">Update Baby Goat Details</div>
+
+<script>
+  let focusedField = "uid";
+
+  let lastUID = "";
+
+  function setFocusedField(field) {
+    focusedField = field;
+  }
+
+  async function fetchUID() {
+    const response = await fetch("/latest_uid");
+    const data = await response.json();
+    const uid = data.uid || "No UID scanned";
+    console.log(data);
+
+    if (uid !== "No UID scanned" && uid !== lastUID) {
+      document.getElementById(focusedField).value = uid;
+      lastUID = uid;
+
+      if (focusedField === "uid") {
+        const detailsResponse = await fetch(`/uid_details/${uid}`);
+        const details = await detailsResponse.json();
+        console.log(details);
+        displayDetails(details);
+      }
+    }
+  }
+
+  function displayDetails(details) {
+    if (details) {
+      document.getElementById("details").innerHTML = `
+          <form id="goatForm" action="/farmer_editBabyGoat/${details.uid}" method="POST">
+            <div>
+              <label for="uid">Uid</label>
+              <input
+                type="text"
+                id="uid"
+                name="uid"
+                value="${details.uid}"
+                readonly
+                onclick="setFocusedField('uid')"
+              />
+            </div>
+            <div>
+              <label for="mom_uid">Mother UID</label>
+              <input
+                type="text"
+                id="mom_uid"
+                name="mom_uid"
+                value="${details.mom_uid}"
+                onclick="setFocusedField('mom_uid')"
+              />
+            </div>
+            <div>
+              <label for="dad_uid">Father UID</label>
+              <input
+                type="text"
+                id="dad_uid"
+                name="dad_uid"
+                value="${details.dad_uid}"
+                onclick="setFocusedField('dad_uid')"
+              />
+            </div>
+            <div>
+              <label for="breed">Breed</label>
+              <input type="text" id="breed" name="breed" value="${details.breed}" />
+            </div>
+            <div>
+              <label for="register_time">Register Time</label>
+              <input
+                type="datetime-local"
+                id="register_time"
+                name="register_time"
+                value="${details.register_time}"
+              />
+            </div>
+            <div>
+              <label for="health_status">Health Status</label>
+              <input
+                type="text"
+                id="health_status"
+                name="health_status"
+                value="${details.health_status}"
+              />
+            </div>
+            <div>
+              <label for="treatment_time">Treatment Time</label>
+              <input
+                type="datetime-local"
+                id="treatment_time"
+                name="treatment_time"
+                value="${details.treatment_time}"
+              />
+            </div>
+            <div class="view-back-container">
+                  <a href="{{url_for('farmer_viewBabyGoat')}}" class="link-view-back
+                  
+                  ">Cancel</a>
+            </div>
+          </form>`;
+    } else {
+      document.getElementById("details").innerHTML =
+        "<p>No details available </p>";
+    }
+  }
+  setInterval(fetchUID, 1000);
+</script>
+{% endblock %}
