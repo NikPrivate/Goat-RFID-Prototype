@@ -43,7 +43,7 @@ def login():
             elif user_type == 'farmer':
                 return redirect(url_for('farmer_page'))
             elif user_type == 'vet':
-                return redirect(url_for('vet'))
+                return redirect(url_for('vet_page'))
         
         else:
             flash('Invalid email or password. Please try again.', 'error')
@@ -1720,6 +1720,171 @@ def farmer_feedCalc():
             result = "Invalid input"
     
     return render_template('farmer/farmer_feedCalc.html',weight=weight, dmi=dmi, freshfodder=freshfodder, valueHay=valueHay, konsentrat=konsentrat, content=content)
+
+@app.route('/vet_page')
+def vet_page():
+    return render_template('/vet/vet_page.html')
+
+@app.route('/vet_rfid')
+def vet_rfid():
+    return render_template('/vet/vet_rfid.html')
+
+@app.route('/vet_goat')
+def vet_goat():
+    return render_template('/vet/vet_goat.html')
+
+@app.route('/vet_addGoat')
+def vet_addGoat():
+    return render_template('/vet/vet_addGoat.html')
+
+@app.route('/vet_updateGoat/<uid>', methods=['POST'])
+def vet_update_Goat_submit(uid):
+    gender = request.form['gender']
+    breed = request.form['breed']
+    age = request.form['age']
+    register_time = request.form['register_time']
+    
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE goat SET gender=%s, breed=%s, age=%s, register_time=%s WHERE uid=%s
+        """, (gender, breed, age, register_time, uid))
+        conn.commit()
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    finally:
+        cursor.close()
+        conn.close()
+
+    return redirect(url_for('farmer_rfid'))
+
+@app.route('/vet_babyGoat')
+def vet_babyGoat():
+    return render_template('vet/vet_babyGoat.html')
+
+@app.route('/vet_addBabyGoat', methods=['POST'])
+def vet_addBabyGoat():
+    uid = request.form['uid']
+    mom_uid = request.form['mom_uid']
+    dad_uid = request.form['dad_uid']
+    breed = request.form['breed']
+    register_time = request.form['register_time']
+    health_status = request.form['health_status']
+    treatment_time = request.form['treatment_time']
+    
+    
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO baby_goat (uid, mom_uid, dad_uid, breed, register_time, health_status, treatment_time) VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (uid, mom_uid, dad_uid, breed, register_time, health_status, treatment_time))
+        
+        conn.commit()
+        
+        cursor.close()
+        conn.close()
+        
+        return redirect (url_for('farmer_babyGoat'))
+    
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return "An error occured while inserting the baby goat details", 500
+    
+    
+@app.route('/vet_viewBabyGoat')
+def vet_viewBabyGoat():
+    
+    try:
+        
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM baby_goat")
+        results = cursor.fetchall()
+        
+        for result in results:
+            if result['register_time']:
+                result['register_time'] = result['register_time'].strftime('%Y-%m-%dT%H:%M')
+            
+            if result['treatment_time']:
+                result['treatment_time'] = result['treatment_time'].strftime('%Y-%m-%dT%H:%M')
+         # Fetch family data and build family tree
+        family_data = birth_cert()  # Ensure this function retrieves all family data
+        family_tree = build_birth_tree(family_data)  # Build the family tree
+        
+        cursor.close()
+        conn.close()
+        return render_template('vet/vet_viewBabyGoat.html', babygoats = results, family_tree=family_tree, family_data=family_data)
+        
+        
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return "An error is occurred while viewing the baby goat details"
+    
+@app.route('/vet_editBabyGoat/<string:id>', methods=['GET', 'POST'])
+def vet_editBabyGoat(id):
+    try:
+        conn  = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor(dictionary=True)
+        
+        if request.method == 'POST':
+            
+            mom_uid = request.form['mom_uid']
+            dad_uid = request.form['dad_uid']
+            breed = request.form['breed']
+            register_time = request.form['register_time']
+            health_status = request.form['health_status']
+            treatment_time = request.form['treatment_time']
+            
+            cursor.execute("""
+                UPDATE baby_goat
+                SET mom_uid=%s, dad_uid=%s, breed=%s, register_time=%s, health_status=%s, treatment_time=%s WHERE uid=%s
+            """, (mom_uid, dad_uid, breed, register_time, health_status, treatment_time, id))
+            
+            conn.commit()
+
+            cursor.close()
+            conn.close()
+            
+            return redirect(url_for('vet_viewBabyGoat'))
+        
+        cursor.execute("SELECT * FROM baby_goat WHERE uid=%s",(id,))
+        babygoats = cursor.fetchall()
+        
+        for baby_goat in babygoats:
+            if baby_goat['register_time']:
+                baby_goat['register_time'] = baby_goat['register_time'].strftime('%Y-%m-%dT%H:%M')
+            
+            if baby_goat['treatment_time']:
+                baby_goat['treatment_time'] = baby_goat['treatment_time'].strftime('%Y-%m-%dT%H:%M')
+                
+        cursor.close()
+        conn.close()
+        
+        return render_template('vet/vet_editBabyGoat.html', baby_goat=babygoats)
+    
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return "An error occured while updating the baby goat details", 500
+    
+@app.route('/vet_deleteBabyGoat/<string:id>', methods=['POST', 'GET'])
+def vet_deleteBabyGoat(id):
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM baby_goat WHERE uid=%s",(id,))
+        conn.commit()
+        
+        cursor.close()
+        conn.close()
+        
+        return redirect(url_for('vet_viewBabyGoat'))
+        
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return "An error occured while trying to delete the baby goat details", 500
 
 
 

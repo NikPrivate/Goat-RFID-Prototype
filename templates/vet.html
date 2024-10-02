@@ -1,38 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Veterinarian Page{% endblock %}</title>
-  <link rel="stylesheet" href="{{url_for('static', filename='style.css')}}">
-</head>
-<body>
-  <div class="dashboard-container">
-    <aside class="sidebar">
-      <h2>Dashboard</h2>
-      <nav>
-        <ul>
-          <li><a href="">Overview</a></li>
-          <li><a href="">RFID Scan</a></li>
-          <li><a href="">Health Status</a></li>
-          <li><a href="">Treatment Time</a></li>
-          <li><a href="">Feed Price Calculator</a></li>
-          <li><a href="">Feed Calculator</a></li>
-        </ul>
-      </nav>
-      <div class="logout">
-        <ul>
-          <li><a href="{{url_for('login')}}">Logout</a></li>
-        </ul>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Admin Page{% endblock %}</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <div class="dashboard-container">
+      <!-- Hamburger Icon -->
+      <button class="hamburger" id="hamburger">☰</button>
+
+      <!-- Sidebar -->
+      <aside class="sidebar" id="sidebar">
+        <h2>Dashboard</h2>
+        <nav>
+          <ul>
+            <li><a href="{{url_for('vet_page')}}">Overview</a></li>
+            <li><a href="{{url_for('vet_rfid')}}">RFID Scan</a></li>
+            <li><a href="{{url_for('vet_goat')}}">Goat</a></li>
+            <li><a href="">Health Tracker</a></li>
+            <li>
+              <a href="">Vaccination Schedule</a>
+            </li>
+            <li><a href="">Breeding Program</a></li>
+            <li>
+              <a href="">Feed Price Calculator</a>
+            </li>
+            <li><a href="">Feed Calculator</a></li>
+          </ul>
+        </nav>
+        <div class="logout">
+          <ul>
+            <li><a href="{{url_for('login')}}">Logout</a></li>
+          </ul>
+        </div>
+      </aside>
+
+      <div class="main-content" id="main-content">
+        <section class="content">
+          {% block content %}
+          <!-- Page-specific content will go here -->
+          {% endblock %}
+        </section>
       </div>
-    </aside>
-    <div class="main-content">
-      <section class="content">
-        {% block content %}
-        {% endblock %}
-      </section>
     </div>
-  </div>
-  
-</body>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const sidebar = document.querySelector(".sidebar");
+        const hamburger = document.querySelector(".hamburger");
+        const mainContent = document.querySelector(".main-content");
+
+        // Retrieve sidebar state from localStorage (if available)
+        const isSidebarOpen = localStorage.getItem("sidebarOpen") === "true";
+
+        if (isSidebarOpen) {
+          sidebar.classList.add("open");
+          mainContent.classList.add("shifted");
+        }
+
+        // Add event listener to toggle the sidebar
+        hamburger.addEventListener("click", function () {
+          sidebar.classList.toggle("open");
+          mainContent.classList.toggle("shifted");
+
+          // Save sidebar state to localStorage
+          const isOpen = sidebar.classList.contains("open");
+          localStorage.setItem("sidebarOpen", isOpen);
+        });
+      });
+    </script>
+  </body>
 </html>
