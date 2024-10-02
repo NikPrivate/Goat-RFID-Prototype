@@ -2016,5 +2016,294 @@ def vet_updateVaccine(uid):
 
     return redirect(url_for('vet_rfid'))
 
+@app.route('/vet_breeding')
+def vet_breeding():
+    return render_template('vet/vet_breeding.html')
+
+@app.route('/vet_addBreeding', methods=['POST'])
+def vet_addBreeding():
+    uid = request.form['uid']
+    partner_uid = request.form['partner_uid']
+    program_date = request.form['program_date']
+    pregnancy_check_date = request.form['pregnancy_check_date']
+    expected_birth_date = request.form['expected_birth_date']
+    breeding_method = request.form['breeding_method']
+    
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO breeding (uid, partner_uid, program_date, pregnancy_check_date, expected_birth_date, breeding_method) VALUES (%s, %s, %s, %s, %s, %s)
+        """, (uid, partner_uid, program_date, pregnancy_check_date, expected_birth_date, breeding_method))
+        
+        conn.commit()
+        
+        cursor.close()
+        conn.close()
+        
+        return redirect (url_for('vet_breeding'))
+        
+        
+    
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return "Error on inserting breeding progran details into database", 500
+
+@app.route('/vet_viewBreeding')
+def vet_viewBreeding():
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM breeding")
+        results = cursor.fetchall()
+        
+        for result in results:
+            if result['program_date']:
+                result['program_date'] = result['program_date'].strftime('%Y-%m-%dT%H:%M')
+                
+            if result['pregnancy_check_date']:
+                result['pregnancy_check_date'] = result['pregnancy_check_date'].strftime('%Y-%m-%dT%H:%M')
+            
+            if result['expected_birth_date']:
+                result['expected_birth_date'] = result['expected_birth_date'].strftime('%Y-%m-%dT%H:%M')
+                
+        cursor.close()
+        conn.close()
+        return render_template('vet/vet_viewBreeding.html', breedings=results )
+        
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return "An error is occurred while viewing the breeding program"
+    
+
+@app.route('/vet_editBreeding/<string:id>', methods=['GET', 'POST'])
+def vet_editBreeding(id):
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor(dictionary=True)
+        
+        if  request.method == 'POST':
+            
+            partner_uid = request.form['partner_uid']
+            program_date = request.form['program_date']
+            pregnancy_check_date = request.form['pregnancy_check_date']
+            expected_birth_date = request.form['expected_birth_date']
+            breeding_method = request.form['breeding_method']
+            
+            cursor.execute("""
+                UPDATE breeding 
+                SET partner_uid=%s, program_date=%s, pregnancy_check_date=%s, expected_birth_date=%s, breeding_method=%s
+                WHERE uid=%s
+            """, (partner_uid, program_date, pregnancy_check_date, expected_birth_date, breeding_method, id))
+            
+            conn.commit()
+            
+            cursor.close()
+            conn.close()
+            
+            return redirect(url_for('vet_viewBreeding'))
+        
+        cursor.execute("SELECT * FROM breeding WHERE uid=%s",(id,))
+        breedings = cursor.fetchall()
+        
+        for breeding in breedings:
+            if breeding['program_date']:
+                breeding['program_date'] = breeding['program_date'].strftime('%Y-%m-%dT%H:%M')
+                
+            if breeding['pregnancy_check_date']:
+                breeding['pregnancy_check_date'] = breeding['pregnancy_check_date'].strftime('%Y-%m-%dT%H:%M')
+                
+            if breeding['expected_birth_date']:
+                breeding['expected_birth_date'] = breeding['expected_birth_date'].strftime('%Y-%m-%dT%H:%M')
+        
+        cursor.close()
+        conn.close()
+        
+        return render_template('vet/vet_editBreeding.html', breeding=breedings)            
+        
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return "An error occured while updating the breeding program"
+    
+    
+@app.route('/vet_deleteBreeding/<string:id>', methods=['POST', 'GET'])
+def vet_deleteBreeding(id):
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM breeding WHERE uid=%s",(id,))
+        conn.commit()
+        
+        cursor.close()
+        conn.close()
+        
+        return redirect(url_for('vet_viewBreeding'))
+    
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return "An error occured while trying to delete the breeding program date", 500
+    
+@app.route('/vet_feedPriceCalc', methods=['GET','POST'])
+def vet_feedPriceCalc():
+    result = numgoat = feedpergoat = priceperkg = months = None
+    if request.method == 'POST':
+        try:
+            # Get the form inputs
+            numgoat = float(request.form['numgoat'])
+            feedpergoat = float(request.form['feedpergoat'])
+            priceperkg = float(request.form['priceperkg'])
+            months = float(request.form['months'])
+            
+            result = (numgoat * feedpergoat) / 1000 * priceperkg * (months * 31)
+        
+        except ValueError:
+            result = "Invalid input. Please enter numbers only"
+    
+    return render_template('vet/vet_feedPriceCalc.html', result=result, numgoat=numgoat, feedpergoat=feedpergoat, priceperkg=priceperkg, months=months)
+
+
+@app.route('/vet_addPrice', methods=['POST'])
+def vet_addPrice():
+    
+    time = request.form['time']
+    total_spend = request.form['total_spend']
+    
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO feed_price (time, total_spend) VALUES (%s, %s)
+        """, (time, total_spend))
+        
+        conn.commit()
+        
+        cursor.close()
+        conn.close()
+        
+        return redirect(url_for('vet_feedPriceCalc'))
+        
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return "An error is occured encountering when tracking the price", 500
+    
+@app.route('/vet_viewPrice')
+def vet_viewPrice():
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor =  conn.cursor(dictionary=True)
+        
+        cursor.execute("SELECT * FROM feed_price")
+        results = cursor.fetchall()
+        
+        for result in results:
+            if result['time']:
+                result['time'] = result['time'].strftime('%Y-%m-%d %H:%M')
+        
+        cursor.close()
+        conn.close()
+        return render_template('vet/vet_viewPrice.html', feedPrice=results)
+        
+        
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return "An error occured while fetching the details", 500
+
+@app.route('/vet_editPrice/<int:id>', methods=['GET', 'POST'])
+def vet_editPrice(id):
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor(dictionary=True)
+    
+    if request.method == 'POST':
+        
+        time = request.form['time']
+        total_spend = request.form['total_spend']
+        
+        cursor.execute("""
+            UPDATE feed_price SET time=%s, total_spend=%s
+        """, (time, total_spend))
+        
+        conn.commit()
+        
+        cursor.close()
+        conn.close()
+        
+        return redirect(url_for('vet_viewPrice'))
+    
+    cursor.execute("SELECT * FROM feed_price WHERE Id=%s",(id,))
+    feed_price = cursor.fetchone()
+    
+    if feed_price and feed_price['time']:
+        feed_price['time'] = feed_price['time'].strftime('%Y-%m-%d T %H:%M')
+        
+    cursor.close()
+    conn.close()
+    
+    return render_template('vet/vet_editPrice.html', feed_price=feed_price)
+
+@app.route('/vet_deletePrice/<int:id>', methods=['GET','POST'])
+def vet_deletePrice(id):
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM feed_price WHERE Id=%s",(id,))
+        conn.commit()
+        
+        cursor.close()
+        conn.close()
+        
+        return redirect(url_for('vet_viewPrice'))
+        
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return "An error occured while trying to delete the record details", 500
+    
+
+@app.route('/vet_feedCalc', methods=['GET', 'POST'])
+def vet_feedCalc():
+    weight = dmi = freshfodder = valueHay = konsentrat = None
+    content = {}
+    
+    pembesaran = 0.04
+    maintenance = 0.03
+    pembiakan = 0.036
+    menyusu = 0.043
+    
+    if request.method == 'POST':
+        try:
+            weight = float(request.form['weight'])
+            stage = request.form['stage']
+            hay = request.form['hay']
+            
+            if stage == 'pembesaran':
+                dmi = round(weight * 0.04,2)
+            elif stage == 'maintenance':
+                dmi = round(weight * 0.03,2)
+            elif stage == 'pembiakan':
+                dmi = round(weight * 0.036,2)
+            elif stage == 'menyusu':
+                dmi = round(weight * 0.043,2)
+                
+            freshfodder = round(dmi * 0.7 * 5.3,2)
+            if hay == 'yesHay':
+                valueHay = round(dmi * 0.1,2)
+            else:
+                valueHay = 0.0
+            konsentrat = round(dmi * 0.2,2)   
+            
+            content = {
+                'dmi' : dmi,
+                'freshfodder' : freshfodder,
+                'valueHay' : valueHay,
+                'konsentrat' : konsentrat
+            }
+            
+        
+        except ValueError:
+            result = "Invalid input"
+    
+    return render_template('vet/vet_feedCalc.html',weight=weight, dmi=dmi, freshfodder=freshfodder, valueHay=valueHay, konsentrat=konsentrat, content=content)
+
 if __name__ == "__main__":
     app.run(debug=True)

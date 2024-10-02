@@ -1,0 +1,79 @@
+{% extends 'vet.html' %} {% block title %}Edit Breeding Program{% endblock %} {%
+block content %}
+<h1>Edit Breeding Program</h1>
+<span id="uid"></span>
+<div id="details">Update breeding program</div>
+
+<script>
+  let focusedField = "uid";
+
+  let lastUID = "";
+
+  function setFocusedField(field) {
+    focusedField = field;
+  }
+
+  async function fetchUID() {
+    const response = await fetch("/latest_uid");
+    const data = await response.json();
+    const uid = data.uid || "No UID scanned";
+    console.log(data);
+
+    if (uid !== "No UID scanned" && uid !== lastUID) {
+      document.getElementById(focusedField).value = uid;
+      lastUID = uid;
+
+      if (focusedField === "uid") {
+        const detailsResponse = await fetch(`/uid_details/${uid}`);
+        const details = await detailsResponse.json();
+        console.log(details);
+        displayDetails(details);
+      }
+    }
+  }
+
+  function displayDetails(details) {
+    if (details) {
+      document.getElementById("details").innerHTML = `
+          <form id="goatForm" action="/vet_editBreeding/${details.uid}" method="POST">
+            <div>
+              <label for="uid">Uid</label>
+              <input type="text" name="uid" id="uid" value="${details.uid}" readonly onclick="setFocusedField('uid')">
+            </div>
+            <div>
+              <label for="partner_uid">Partner Uid</label>
+              <input type="text" name="partner_uid" id="partner_uid" value="${details.partner_uid}" onclick="setFocusedField('partner_uid')">
+            </div>
+            <div>
+              <label for="program_date">Program Date</label>
+              <input type="datetime-local" name="program_date" id="program_date" value="${details.program_date}">
+            </div>
+            <div>
+              <label for="pregnancy_check_date">Pregnancy Check Date</label>
+              <input type="datetime-local" name="pregnancy_check_date" id="pregnancy_check_date" value="${details.pregnancy_check_date}">
+            </div>
+            <div>
+              <label for="expected_birth_date">Expected Birth Date</label>
+              <input type="datetime-local" id="expected_birth_date" name="expected_birth_date" value="${details.expected_birth_date}">
+            </div>
+            <div>
+              <label for="breeding_method">Breeding Method</label>
+              <input type="text" id="breeding_method" name="breeding_method" value="${details.breeding_method}" placeholder="AI(Artificial insemination) / Hand mating / Pen mating">
+            </div>
+            <div>
+              <button type="submit">Update</button>
+            </div>
+            <div class="view-back-container">
+              <a href="{{url_for('vet_viewBreeding')}}" class="link-view-back
+              
+              ">Cancel</a>
+            </div>
+          </form>`;
+    } else {
+      document.getElementById("details").innerHTML =
+        "<p>No details available </p>";
+    }
+  }
+  setInterval(fetchUID, 1000);
+</script>
+{% endblock %}

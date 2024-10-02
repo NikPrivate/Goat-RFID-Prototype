@@ -1,0 +1,46 @@
+{% extends 'vet.html' %}
+{% block title %} Feed Price Calculator {% endblock %}
+{% block content %}
+<h1>Feed Price Calculator</h1>
+<form action="{{url_for('vet_feedPriceCalc')}}", method="POST">
+  <div>
+    <label for="numgoat">Number of Goats</label>
+    <input type="text" id="numgoat" name="numgoat" value="{{numgoat if numgoat is not none else ''}}" autocomplete="off" required>
+  </div>
+  <div>
+    <label for="feedpergoat">Amount of food per goat (grams)</label>
+    <input type="text" id="feedpergoat" name="feedpergoat" value="{{feedpergoat if feedpergoat is not none else ''}}" autocomplete="off" required>
+  </div>
+  <div>
+    <label for="priceperkg">Price per kg of food</label>
+    <input type="text" id="priceperkg" name="priceperkg" value="{{priceperkg if priceperkg is not none else ''}}" autocomplete="off" required>
+  </div>
+  <div>
+    <label for="months">Total months</label>
+    <input type="text" id="months" name="months" value="{{months if months is not none else ''}}" autocomplete="off" required>
+  </div>
+  <div>
+    <button type="submit">Calculate</button>
+  </div>
+  {% if result is not none %}
+    <h2>Total Price: RM {{result}} </h2>
+  {% endif %}
+</form>
+
+<form action="{{url_for('vet_editPrice', id=feed_price.Id)}}" method="POST">
+  <div>
+    <label class="form-label" for="time">Time</label>
+    <input type="datetime-local" id="time" name="time" value="{{feed_price.time}}" required>
+  </div>
+  <div>
+    <label for="total_spend">Total Spend</label>
+    <input type="text" id="total_spend" name="total_spend" value="{{feed_price.total_spend}}" required>
+  </div>
+  <div>
+    <button type="submit">Update</button>
+  </div>
+  <div class="view-back-container"></div>
+    <a href="{{url_for('vet_viewPrice')}}" class="link-view-back">Cancel</a>
+  </div>
+</form>
+{% endblock %}
