@@ -1,5 +1,5 @@
-{% extends 'index.html' %} {% block title %} Health Status {% endblock %} {%
-block content %}
+{% extends 'vet.html' %} {% block title %} Health Status {% endblock %} {% block
+content %}
 <h1>Goat Health Tracker</h1>
 <p>UID: <span id="uid">Waiting...</span></p>
 <div id="details">Register Goat Health</div>
@@ -29,7 +29,7 @@ block content %}
   function displayDetails(details) {
     if (details) {
       document.getElementById("details").innerHTML = `
-              <form id="goatForm" action="/update_health" method="POST">
+              <form id="goatForm" action="/vet_updateHealth" method="POST">
                   <div>
                       <label for="uid">UID</label>
                       <input type="text" id="uid" name="uid" value="${
@@ -89,7 +89,7 @@ block content %}
                     <button type="submit">Register</button>
                   </div>
                   <div class="view-back-container">
-                    <a href="{{url_for('view_health')}}" class="link-view-back">View</a>
+                    <a href="{{url_for('vet_viewHealth')}}" class="link-view-back">View</a>
                   </div>
               </form>`;
     } else {

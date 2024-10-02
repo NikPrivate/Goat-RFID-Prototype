@@ -1886,7 +1886,135 @@ def vet_deleteBabyGoat(id):
         print(f"Error: {err}")
         return "An error occured while trying to delete the baby goat details", 500
 
+@app.route('/vet_health')
+def vet_health():
+    return render_template('vet/vet_health.html')
 
+@app.route('/vet_updateHealth', methods=['POST'])
+def vet_updateHealth():
+    uid = request.form['uid']
+    health_status = request.form['health_status']
+    treatment_form = request.form['treatment_form']
+    vaccination_form = request.form['vaccination_form']
+    
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+    
+        cursor.execute("""
+            UPDATE goat SET health_status=%s WHERE uid=%s
+        """,(health_status,uid))
+    
+        cursor.execute("""
+            INSERT INTO health_tracker (uid, treatment_form, vaccination_form)
+            VALUES (%s, %s, %s)
+            ON DUPLICATE KEY UPDATE treatment_form=%s, vaccination_form=%s
+        """,(uid, treatment_form, vaccination_form, treatment_form, vaccination_form))
+    
+        conn.commit()
+    
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    finally:
+        cursor.close()
+        conn.close()
+        
+    return redirect(url_for('vet_viewHealth'))
+
+@app.route('/vet_viewHealth', methods=['GET','POST'])
+def vet_viewHealth():
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor= conn.cursor(dictionary=True)
+        
+        
+        cursor.execute("SELECT * FROM health_tracker")
+        results = cursor.fetchall()
+    
+        cursor.close()
+        conn.close()
+        
+        return render_template('vet/vet_viewHealth.html', healths=results)
+    
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return "An error occurred while fetching the details.", 500
+    
+@app.route('/vet_editHealth/<string:id>', methods=['GET','POST'])
+def vet_editHealth(id):
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor(dictionary=True)
+    
+    if request.method == 'POST':
+        
+        treatment_form = request.form['treatment_form']
+        vaccination_form = request.form['vaccination_form']
+        
+        cursor.execute("""
+            UPDATE health_tracker SET treatment_form=%s, vaccination_form=%s WHERE uid=%s
+        """, (treatment_form, vaccination_form, id))
+
+        conn.commit()
+        
+        cursor.close()
+        conn.close()
+        
+        return redirect(url_for('vet_viewHealth'))
+    
+    cursor.execute("SELECT * FROM health_tracker WHERE uid=%s",(id,))
+    health_tracker = cursor.fetchone()
+    
+    cursor.close()
+    conn.close()
+    
+    return render_template('vet/vet_editHealth.html', health = health_tracker)
+
+@app.route('/vet_deleteHealth/<string:id>', methods=['GET', 'POST'])
+def vet_deleteHealth(id):
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        
+        cursor.execute("DELETE FROM health_tracker WHERE uid=%s",(id,))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return redirect(url_for('vet_viewHealth'))
+    
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return "An error occurred while trying to delete the goat health status", 500
+    
+
+@app.route('/vet_vaccine')
+def vet_vaccine():
+    return render_template('vet/vet_vaccine.html')
+    
+    
+@app.route('/vet_updateVaccine/<uid>', methods=['POST'])
+def vet_updateVaccine(uid):
+    gender = request.form['gender']
+    breed = request.form['breed']
+    age = request.form['age']
+    register_time = request.form['register_time']
+    health_status = request.form['health_status']
+    treatment_time = request.form['treatment_time']
+    
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE goat SET gender=%s, breed=%s, age=%s, register_time=%s, health_status=%s, treatment_time=%s WHERE uid=%s
+        """, (gender, breed, age, register_time, health_status,treatment_time, uid))
+        conn.commit()
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    finally:
+        cursor.close()
+        conn.close()
+
+    return redirect(url_for('vet_rfid'))
 
 if __name__ == "__main__":
     app.run(debug=True)

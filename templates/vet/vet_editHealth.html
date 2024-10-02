@@ -1,0 +1,34 @@
+{% extends 'vet.html' %} {% block title %}Edit Goat Health{% endblock %} {%
+block content %}
+<h1>Edit Goat Health</h1>
+<form action="{{url_for('vet_editHealth', id=health.uid)}}" method="POST">
+  <div>
+    <label for="uid">Uid</label>
+    <input type="text" name="uid" id="uid" value="{{health.uid}}" readonly />
+  </div>
+  <div>
+    <label for="treatment_form">Treatment:</label>
+    <input
+      type="text"
+      name="treatment_form"
+      id="treatment_form"
+      value="{{health.treatment_form}}"
+    />
+  </div>
+  <div>
+    <label for="vaccination_form">Vaccination:</label>
+    <input
+      type="text"
+      name="vaccination_form"
+      id="vaccination_form"
+      value="{{health.vaccination_form}}"
+    />
+  </div>
+  <div>
+    <button type="submit">Update</button>
+  </div>
+  <div>
+    <a href="{{url_for('vet_viewHealth')}}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

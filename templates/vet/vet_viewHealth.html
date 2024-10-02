@@ -1,5 +1,5 @@
-{% extends 'index.html' %} {% block title %}View Goat Health Details{% endblock
-%} {% block content %}
+{% extends 'vet.html' %} {% block title %}View Goat Health Details{% endblock %}
+{% block content %}
 <h1>View Goat Health Details</h1>
 
 {% if healths %}
@@ -20,10 +20,12 @@
         <td>{{health.treatment_form}}</td>
         <td>{{health.vaccination_form}}</td>
         <td class="action">
-          <a href="{{url_for('edit_health', id=health.uid)}}" class="edit"
+          <a href="{{url_for('vet_editHealth', id=health.uid)}}" class="edit"
             >Edit</a
           >
-          <a href="{{url_for('delete_health', id=health.uid)}}" class="delete"
+          <a
+            href="{{url_for('vet_deleteHealth', id=health.uid)}}"
+            class="delete"
             >Delete</a
           >
         </td>
@@ -37,7 +39,7 @@
 {% endif %}
 
 <div class="view-back-container">
-  <a href="{{url_for('health_stats')}}" class="link-view-back"
+  <a href="{{url_for('vet_health')}}" class="link-view-back"
     >Back to Registration</a
   >
 </div>
