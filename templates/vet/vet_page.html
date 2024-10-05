@@ -28,59 +28,6 @@
     </div>
   </div>
 </section>
-<section class="dashboard-cards2">
-  <h1>Record Transactions for Feed Price</h1>
-  <canvas id="myLineChart"></canvas>
-</section>
-
-<script>
-  // Function to fetch monthly spend data and render the line chart
-  async function renderChart() {
-      // Fetch data from the server
-      const response = await fetch('/recordPrice');
-      const data = await response.json();
-
-      // Extract months and total amounts from the data
-      const labels = data.map(item => item.month);
-      const totalAmounts = data.map(item => item.total_amount);
-
-      // Set up the chart configuration
-      const ctx = document.getElementById('myLineChart').getContext('2d');
-      new Chart(ctx, {
-          type: 'line',
-          data: {
-              labels: labels,  // Months
-              datasets: [{
-                  label: 'Total Spend (RM)',
-                  data: totalAmounts,  // Total spend for each month
-                  borderColor: 'rgba(75, 192, 192, 1)',
-                  tension: 0.1,
-                  fill: false
-              }]
-          },
-          options: {
-              responsive: true,
-              scales: {
-                  x: {
-                      title: {
-                          display: true,
-                          text: 'Month'
-                      }
-                  },
-                  y: {
-                      title: {
-                          display: true,
-                          text: 'Total Spend (RM)'
-                      }
-                  }
-              }
-          }
-      });
-  }
-
-  // Call the function to render the chart
-  renderChart();
-</script>
 
 <script>
   // Plugin for displaying text in the middle of the doughnut chart

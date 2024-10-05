@@ -28,59 +28,6 @@
     </div>
   </div>
 </section>
-<section class="dashboard-cards2">
-  <h1>Record Transactions for Feed Price</h1>
-  <canvas id="myLineChart"></canvas>
-</section>
-
-<script>
-  // Function to fetch monthly spend data and render the line chart
-  async function renderChart() {
-      // Fetch data from the server
-      const response = await fetch('/recordPrice');
-      const data = await response.json();
-
-      // Extract months and total amounts from the data
-      const labels = data.map(item => item.month);
-      const totalAmounts = data.map(item => item.total_amount);
-
-      // Set up the chart configuration
-      const ctx = document.getElementById('myLineChart').getContext('2d');
-      new Chart(ctx, {
-          type: 'line',
-          data: {
-              labels: labels,  // Months
-              datasets: [{
-                  label: 'Total Spend (RM)',
-                  data: totalAmounts,  // Total spend for each month
-                  borderColor: 'rgba(75, 192, 192, 1)',
-                  tension: 0.1,
-                  fill: false
-              }]
-          },
-          options: {
-              responsive: true,
-              scales: {
-                  x: {
-                      title: {
-                          display: true,
-                          text: 'Month'
-                      }
-                  },
-                  y: {
-                      title: {
-                          display: true,
-                          text: 'Total Spend (RM)'
-                      }
-                  }
-              }
-          }
-      });
-  }
-
-  // Call the function to render the chart
-  renderChart();
-</script>
 
 <script>
   // Plugin for displaying text in the middle of the doughnut chart
@@ -94,13 +41,13 @@
         const total = chart.config.data.datasets[0].data.reduce((a, b) => a + b, 0);  // Get total count
 
         ctx.restore();
-        const fontSize = (height / 220).toFixed(2);
+        const fontSize = (height / 270).toFixed(2);
         ctx.font = `${fontSize}em sans-serif`;
         ctx.textBaseline = 'middle';
 
         const text = `Total:\n ${total}`
         const textX = Math.round((width - ctx.measureText(text).width) / 2);
-        const textY = height / 1.8;
+        const textY = height / 1.7;
 
         ctx.fillText(text, textX, textY);
         ctx.save();
@@ -130,6 +77,23 @@
                 plugins: {
                   legend: {
                     position: 'top',
+                    labels: {
+                      // Customize legend label to include the totals
+                      generateLabels: function(chart) {
+                        const data = chart.data;
+                        return data.labels.map(function(label, i) {
+                          const value = data.datasets[0].data[i];
+                          const backgroundColor = data.datasets[0].backgroundColor[i];
+                          return {
+                            text: `${label}: ${value}`,  // Add value next to the label
+                            fillStyle: backgroundColor,
+                          };
+                        });
+                      },
+                      font:{
+                        size: 16,
+                      }
+                    }
                   },
                   tooltip: {
                     callbacks: {
@@ -162,9 +126,26 @@
           },
           options: {
             responsive: true,
-            plugin: {
+            plugins: {
               legend: {
                 position: 'top',
+                labels: {
+                      // Customize legend label to include the totals
+                      generateLabels: function(chart) {
+                        const data = chart.data;
+                        return data.labels.map(function(label, i) {
+                          const value = data.datasets[0].data[i];
+                          const backgroundColor = data.datasets[0].backgroundColor[i];
+                          return {
+                            text: `${label}: ${value}`,  // Add value next to the label
+                            fillStyle: backgroundColor,
+                          };
+                        });
+                      },
+                      font: {
+                        size: 16,
+                      }
+                    }
               },
               tooltip: {
                 callbacks: {
@@ -197,9 +178,27 @@
           },
           options:{
             responsive: true,
-            plugin: {
+            plugins: {
               legend: {
                 position: 'top',
+                labels: {
+                      // Customize legend label to include the totals
+                      generateLabels: function(chart) {
+                        const data = chart.data;
+                        return data.labels.map(function(label, i) {
+                          const value = data.datasets[0].data[i];
+                          const backgroundColor = data.datasets[0].backgroundColor[i];
+                          return {
+                            text: `${label}: ${value}`,  // Add value next to the label
+                            fillStyle: backgroundColor,
+                  
+                          };
+                        });
+                      },
+                      font:{
+                        size: 16,
+                      }
+                    }
               },
               tooltip: {
                 callbacks: {
