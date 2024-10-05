@@ -1,31 +1,29 @@
-{% extends 'index.html' %}
+{% extends 'index.html' %} {% block title %}RFID Life Scan{% endblock %} {%
+block content %}
+<h1>RFID UID Scanner</h1>
+<p>UID: <span id="uid">Waiting...</span></p>
+<div id="details" class="details">No details available</div>
 
-{% block title %}RFID Life Scan{% endblock %}
+<script>
+  async function fetchUID() {
+    const response = await fetch("/latest_uid");
+    const data = await response.json();
+    const uid = data.uid || "No UID scanned";
+    document.getElementById("uid").innerText = uid;
 
-{% block content %}
-    <h1>RFID UID Scanner</h1>
-    <p>UID: <span id="uid">Waiting...</span></p>
-    <div id="details" class="details">No details available</div>
-    
-    <script>
-        async function fetchUID() {
-            const response = await fetch('/latest_uid');
-            const data = await response.json();
-            const uid = data.uid || 'No UID scanned';
-            document.getElementById('uid').innerText = uid;
+    if (uid !== "No UID scanned") {
+      const detailsResponse = await fetch(`/uid_details/${uid}`);
+      const details = await detailsResponse.json();
+      displayDetails(details);
+    } else {
+      document.getElementById("details").innerHTML =
+        "<p>No details available</p>";
+    }
+  }
 
-            if (uid !== 'No UID scanned') {
-                const detailsResponse = await fetch(`/uid_details/${uid}`);
-                const details = await detailsResponse.json();
-                displayDetails(details);
-            } else {
-                document.getElementById('details').innerHTML = '<p>No details available</p>';
-            }
-        }
-
-        function displayDetails(details) {
-            if (details) {
-                document.getElementById('details').innerHTML = `
+  function displayDetails(details) {
+    if (details) {
+      document.getElementById("details").innerHTML = `
                     <table>
                         <tr><th>UID</th><td>${details.uid}</td></tr>
                         <tr><th>Gender</th><td>${details.gender}</td></tr>
@@ -35,11 +33,12 @@
                         <tr><th>Health Status</th><td>${details.health_status}</td></tr>
                         <tr><th>Date to be Vaccinated</th><td>${details.treatment_time}</td></tr>
                     </table>`;
-            } else {
-                document.getElementById('details').innerHTML = '<p>No details available</p>';
-            }
-        }
+    } else {
+      document.getElementById("details").innerHTML =
+        "<p>No details available</p>";
+    }
+  }
 
-        setInterval(fetchUID, 1000);  // Fetch UID every second
-    </script>
+  setInterval(fetchUID, 1000); // Fetch UID every second
+</script>
 {% endblock %}
