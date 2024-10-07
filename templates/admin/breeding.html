@@ -46,15 +46,18 @@ block content %}
           </div>
           <div>
             <label for="program_date">Program Date</label>
-            <input type="datetime-local" id="program_date" name="program_date">
+            <input type="datetime-local" id="program_date" name="program_date"
+            value=${new Date(details.program_date).toISOString().slice(0, 16)}>
           </div>
           <div>
             <label for="pregnancy_check_date">Pregnancy Check Date</label>
-            <input type="datetime-local" id="pregnancy_check_date" name="pregnancy_check_date">
+            <input type="datetime-local" id="pregnancy_check_date" name="pregnancy_check_date"
+            value=${new Date(details.pregnancy_check_date).toISOString().slice(0, 16)} readonly>
           </div>
           <div>
             <label for="expected_birth_date">Expected Birth Date</label>
-            <input type="datetime-local" id="expected_birth_date" name="expected_birth_date">
+            <input type="datetime-local" id="expected_birth_date" name="expected_birth_date"
+            value=${new Date(details.expected_birth_date).toISOString().slice(0, 16)} readonly>
           </div>
           <div>
             <label for="breeding_method">Breeding Method</label>
@@ -67,14 +70,43 @@ block content %}
             <a href="{{url_for('view_breeding')}}" class="link-view-back">View</a>
           </div>
         </form>`;
+
+      // Set event listener for program date change
+      document.getElementById('program_date').addEventListener('change', calculateDates);
     } else {
-      document.getElementById("details").innerHTML =
-        "<p>No details available</p>";
+      document.getElementById("details").innerHTML = "<p>No details available</p>";
     }
   }
 
   // Fetch UID every 2 seconds (2000ms) and insert it into the focused input
   setInterval(fetchUID, 1000);
+
+  function calculateDates() {
+    const programDateInput = document.getElementById('program_date').value;
+
+    if (programDateInput) {
+      const programDate = new Date(programDateInput);
+
+      // Calculate pregnancy check date after 30 days
+      const pregnancyCheckDate = new Date(programDate);
+      pregnancyCheckDate.setDate(pregnancyCheckDate.getDate() + 30);
+      const formattedPregnancyDate = pregnancyCheckDate.toISOString().slice(0, 16);
+
+      // Calculate expected birth date after 150 days
+      const expectedBirthDate = new Date(programDate);
+      expectedBirthDate.setDate(expectedBirthDate.getDate() + 150);
+      const formattedBirthDate = expectedBirthDate.toISOString().slice(0, 16);
+
+      // Update the input fields with calculated dates
+      document.getElementById('pregnancy_check_date').value = formattedPregnancyDate;
+      document.getElementById('expected_birth_date').value = formattedBirthDate;
+    } else {
+      // Clear the pregnancy and expected birth date fields if program date is empty
+      document.getElementById('pregnancy_check_date').value = '';
+      document.getElementById('expected_birth_date').value = '';
+    }
+  }
 </script>
+
 
 {% endblock %}
