@@ -219,17 +219,11 @@ block content %}
   // Function to create the chart once all images are loaded
   function createFeedChart() {
       // Mock data for jsArrayOfItems, replace with your actual data
-      var jsArrayOfItems = {
-          dmi: 30,
-          freshfodder: 20,
-          valueHay: 25,
-          konsentrat: 25,
-      };
-
-      var dmi = jsArrayOfItems.dmi || 0;
-      var freshfodder = jsArrayOfItems.freshfodder || 0;
-      var valueHay = jsArrayOfItems.valueHay || 0;
-      var konsentrat = jsArrayOfItems.konsentrat || 0;
+      
+      var dmi = JSON.parse('{{ dmi|tojson|safe }}');
+      var freshfodder = JSON.parse('{{ freshfodder|tojson|safe }}');
+      var valueHay = JSON.parse('{{ valueHay|tojson|safe }}');
+      var konsentrat = JSON.parse('{{ konsentrat|tojson|safe }}');
       var total = dmi + freshfodder + valueHay + konsentrat;
 
       if (total === 0) {
