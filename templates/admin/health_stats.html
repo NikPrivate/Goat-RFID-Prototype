@@ -1,7 +1,7 @@
 {% extends 'index.html' %} {% block title %} Health Status {% endblock %} {%
 block content %}
 <h1>Goat Health Tracker</h1>
-<p>UID: <span id="uid">Waiting...</span></p>
+<p>Goat ID: <span id="uid">Waiting...</span></p>
 <div id="details">Register Goat Health</div>
 
 <script>
@@ -31,7 +31,7 @@ block content %}
       document.getElementById("details").innerHTML = `
               <form id="goatForm" action="/update_health" method="POST">
                   <div>
-                      <label for="uid">UID</label>
+                      <label for="uid">Goat ID</label>
                       <input type="text" id="uid" name="uid" value="${
                         details.uid
                       }" readonly>
@@ -79,14 +79,14 @@ block content %}
                   </div>
                   <div>
                        <label for="treatment_form">Treatment:</label>
-                       <input type="text" id="treatment_form" name="treatment_form" placeholder="Describe any treatments and medications given">
+                       <textarea id="treatment_form" name="treatment_form" placeholder="Describe any treatments and medications given" rows="4" style="width: 100%; height: 100px;"></textarea>
                   </div>
                   <div>
                        <label for="vaccination_form">Vaccination:</label>
-                       <input type="text" id="vaccination_form" name="vaccination_form" placeholder="Record any vaccinations administered">
+                       <textarea id="vaccination_form" name="vaccination_form" placeholder="Record any vaccinations administered" rows="4" style="width: 100%; height: 100px;"></textarea>
                   </div>
                   <div>
-                    <button type="submit">Register</button>
+                    <button type="submit">Update Goat Health</button>
                   </div>
                   <div class="view-back-container">
                     <a href="{{url_for('view_health')}}" class="link-view-back">View</a>

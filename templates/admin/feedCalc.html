@@ -1,33 +1,86 @@
-{% extends 'index.html'%}
-{% block title %} Feed Calculator {% endblock %}
-{% block content %}
+{% extends 'index.html'%} {% block title %} Feed Calculator {% endblock %} {%
+block content %}
 <h1>Kiraan Keperluan Makanan Harian Ternakan</h1>
-<p>UID: <span id="uid">Waiting...</span></p>
+<p>_________________________________________________________</p>
+
+<!-- <p>UID: <span id="uid">Waiting...</span></p> -->
 <div id="details"></div>
+
+<script>
+  fetch('/num_GoatGender')
+      .then(response => response.json())
+      .then(data => {
+          
+        const ctx = document.getElementById('num_GoatGender').getContext('2d');
+        new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Male','Female'],
+            datasets: [{
+              data: [data.goatGender_count, data.goatGender2_count],
+              backgroundColor: ['#36A2EB','#FF6384']
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                position: 'top',
+                labels: {
+                      // Customize legend label to include the totals
+                      generateLabels: function(chart) {
+                        const data = chart.data;
+                        return data.labels.map(function(label, i) {
+                          const value = data.datasets[0].data[i];
+                          const backgroundColor = data.datasets[0].backgroundColor[i];
+                          return {
+                            text: `${label}: ${value}`,  // Add value next to the label
+                            fillStyle: backgroundColor,
+                          };
+                        });
+                      },
+                      font: {
+                        size: 16,
+                      }
+                    }
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(tooltipItem){
+                    return tooltipItem.label + ': ' + tooltipItem.raw
+                  }
+                }
+              }
+            }
+          }
+        })
+      })
+      .catch(error => console.error('Error fetching data: ',error))
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@latest"></script>
 
-
-<script>
+<!-- <script>
   async function fetchUID() {
-    const response = await fetch('/latest_uid');
+    const response = await fetch("/latest_uid");
     const data = await response.json();
-    const uid = data.uid || 'No UID scanned';
-    document.getElementById('uid').innerText = uid;
+    const uid = data.uid || "No UID scanned";
+    document.getElementById("uid").innerText = uid;
 
-    if (uid !== 'No UID scanned') {
-        const detailsResponse = await fetch(`/uid_details/${uid}`);
-        const details = await detailsResponse.json();
-        displayDetails(details);
+    if (uid !== "No UID scanned") {
+      const detailsResponse = await fetch(`/uid_details/${uid}`);
+      const details = await detailsResponse.json();
+      displayDetails(details);
     } else {
-        document.getElementById('details').innerHTML = '<p>No details available</p>';
+      document.getElementById("details").innerHTML =
+        "<p>No details available</p>";
     }
-}
+  }
 
   function displayDetails(details) {
     if (details) {
-        document.getElementById('details').innerHTML = `
+      document.getElementById("details").innerHTML = `
             <form id="goatForm" action="/update_Goat/${details.uid}" method="POST">
                 <div>
                     <label for="uid">UID</label>
@@ -47,18 +100,39 @@
                 </div>
             </form>`;
     } else {
-        document.getElementById('details').innerHTML = '<p>No details available</p>';
+      document.getElementById("details").innerHTML =
+        "<p>No details available</p>";
     }
-}
+  }
 
-setInterval(fetchUID, 1000);  // Fetch UID every second
+  setInterval(fetchUID, 1000); // Fetch UID every second
+</script> -->
 
-</script>
-
-<form action="", method="POST">
+<form action="" , method="POST">
+  <section class="dashboard-cards">
+    <div class="card">
+      <div class="card-body">
+        <h3>Number of Goat</h2>
+        <div class="chartBox">
+          <canvas id="num_GoatGender"></canvas>
+        </div>
+      </div>
+    </div>
+  </section>
+  <br>
   <div>
-    <label for="weight">Goat Weight (kg)</label>
-    <input type="text" id="weight" name="weight" value="{{weight if weight is not none else ''}}" required>
+    <label for="numofgoats">Bilangan Kambing</label>
+    <input type="text" id="numofgoats" name="numofgoats" value="{{numofgoats if numofgoats is not none else ''}}" required>
+  </div>
+  <div>
+    <label for="weight">Purata Berat Kambing (kg)</label>
+    <input
+      type="text"
+      id="weight"
+      name="weight"
+      value="{{weight if weight is not none else ''}}"
+      readonly
+    />
   </div>
   <div class="breed-goat-register">
     <label for="stage">Stage</label>
@@ -81,91 +155,131 @@ setInterval(fetchUID, 1000);  // Fetch UID every second
   </div>
 
   {% if weight is not none %}
-    <div class="details">
-      <table class="action">
-        <tr>
-          <th>DMI</th>
-          <td>{{dmi}} kg</td>
-        </tr>
-        <tr>
-          <th>FreshFodder (Hijauan Segar)</th>
-          <td>{{freshfodder}} kg</td>
-        </tr>
-        <tr>
-          <th>Hay</th>
-          <td>{{valueHay}} kg</td>
-        </tr>
-        <tr>
-          <th>Konsentrat</th>
-          <td>{{konsentrat}} kg</td>
-        </tr>
-      </table>
-    </div>
+  <div class="details">
+    <table class="action">
+      <tr>
+        <th>Dry Matter Intake (DMI)</th>
+        <td>{{dmi}} kg</td>
+      </tr>
+      <tr>
+        <th>FreshFodder (Hijauan Segar)</th>
+        <td>{{freshfodder}} kg</td>
+      </tr>
+      <tr>
+        <th>Hay</th>
+        <td>{{valueHay}} kg</td>
+      </tr>
+      <tr>
+        <th>Konsentrat</th>
+        <td>{{konsentrat}} kg</td>
+      </tr>
+    </table>
+  </div>
 
-    <div class="chartBox2">
-      <canvas id="feedChart"></canvas>
-    </div>
+  <div class="chartBox2">
+    <canvas id="feedChart"></canvas>
+  </div>
   {% endif %}
 </form>
 
+<canvas id="feedChart" width="400" height="400"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  window.onload = function() {
-    var ctx = document.getElementById('feedChart').getContext('2d');
+  var ctx = document.getElementById('feedChart').getContext('2d');
 
-    // Parse the JSON content passed from Flask
-    const jsArrayOfItems = JSON.parse('{{ content|tojson|safe }}');
+  // Image sources
+  const imageSources = [
+      '/static/dmi.jpg', // DMI
+      '/static/freshfodder.png', // Fresh Fodder
+      '/static/hay.jpg', // Hay
+      '/static/konsentrat.jpg'  // Konsentrat
+  ];
 
-    console.log(jsArrayOfItems); // Debugging line to check the data
+  const images = [];
+  let imagesLoaded = 0;
 
-    var dmi = jsArrayOfItems.dmi || 0;
-    var freshfodder = jsArrayOfItems.freshfodder || 0;
-    var valueHay = jsArrayOfItems.valueHay || 0;
-    var konsentrat = jsArrayOfItems.konsentrat || 0;
-    var total = dmi + freshfodder + valueHay + konsentrat;
-
-    if (total === 0) {
-      console.error("Total is zero, cannot compute percentages.");
-      return;
-    }
-
-    var feedChart = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: ['DMI (%)', 'FreshFodder (%)', 'Hay (%)', 'Konsentrat (%)'],
-        datasets: [{
-          label: 'Feed Distribution',
-          data: [
-            Math.round((dmi/total)*100),
-            Math.round((freshfodder/total)*100),
-            Math.round((valueHay/total)*100),
-            Math.round((konsentrat/total)*100)
-          ],
-          backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'],
-          hoverOffset: 4
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            position: 'top',
-          },
-          datalabels: {
-            formatter: function(value, context) {
-              // Display index and percentage value
-              return context.dataIndex + ': ' + value + '%';
-            },
-            color: '#fff', // Optional: Change the color of the labels
-            anchor: 'end', // Optional: Change the position of the labels
-            align: 'top'   // Optional: Align the labels
+  // Load images
+  imageSources.forEach((src) => {
+      const img = new Image();
+      img.src = src;
+      img.onload = () => {
+          images.push(img);
+          imagesLoaded++;
+          // Check if all images are loaded
+          if (imagesLoaded === imageSources.length) {
+              createFeedChart(); // Call the chart creation function
           }
-        }
-      }
-    });
-    
-  };
-</script>
+      };
+      img.onerror = () => {
+          console.error('Image failed to load:', src);
+      };
+  });
 
+  // Function to create the chart once all images are loaded
+  function createFeedChart() {
+      // Mock data for jsArrayOfItems, replace with your actual data
+      var jsArrayOfItems = {
+          dmi: 30,
+          freshfodder: 20,
+          valueHay: 25,
+          konsentrat: 25,
+      };
+
+      var dmi = jsArrayOfItems.dmi || 0;
+      var freshfodder = jsArrayOfItems.freshfodder || 0;
+      var valueHay = jsArrayOfItems.valueHay || 0;
+      var konsentrat = jsArrayOfItems.konsentrat || 0;
+      var total = dmi + freshfodder + valueHay + konsentrat;
+
+      if (total === 0) {
+          console.error("Total is zero, cannot compute percentages.");
+          return;
+      }
+
+      // Create patterns after images are loaded
+      const dmiPattern = ctx.createPattern(images[0], 'repeat');
+      const freshFodderPattern = ctx.createPattern(images[1], 'repeat');
+      const hayPattern = ctx.createPattern(images[2], 'repeat');
+      const konsentratPattern = ctx.createPattern(images[3], 'repeat');
+
+      var feedChart = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+              labels: ['DMI (%)', 'Fresh Fodder (%)', 'Hay (%)', 'Konsentrat (%)'],
+              datasets: [
+                  {
+                      label: 'Feed Distribution',
+                      data: [
+                          Math.round((dmi / total) * 100),
+                          Math.round((freshfodder / total) * 100),
+                          Math.round((valueHay / total) * 100),
+                          Math.round((konsentrat / total) * 100),
+                      ],
+                      backgroundColor: [dmiPattern, freshFodderPattern, hayPattern, konsentratPattern],
+                      hoverOffset: 4,
+                  },
+              ],
+          },
+          options: {
+              responsive: true,
+              plugins: {
+                  legend: {
+                      position: 'top',
+                  },
+                  datalabels: {
+                      formatter: function (value, context) {
+                          return context.dataIndex + ': ' + value + '%';
+                      },
+                      color: '#fff',
+                      anchor: 'end',
+                      align: 'top',
+                  },
+              },
+          },
+      });
+  }
+</script>
 
 
 

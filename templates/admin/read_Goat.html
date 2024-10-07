@@ -1,7 +1,7 @@
 {% extends 'index.html' %} {% block title %}RFID Life Scan{% endblock %} {%
 block content %}
-<h1>RFID UID Scanner</h1>
-<p>UID: <span id="uid">Waiting...</span></p>
+<h1>RFID Goat ID Scanner</h1>
+<h3>Goat ID: <span id="uid">Waiting...</span></h3>
 <div id="details" class="details">No details available</div>
 
 <script>
@@ -25,13 +25,19 @@ block content %}
     if (details) {
       document.getElementById("details").innerHTML = `
                     <table>
-                        <tr><th>UID</th><td>${details.uid}</td></tr>
+                        <tr><th>Goat ID</th><td>${details.uid}</td></tr>
                         <tr><th>Gender</th><td>${details.gender}</td></tr>
                         <tr><th>Breed</th><td>${details.breed}</td></tr>
-                        <tr><th>Age</th><td>${details.age}</td></tr>
+                        <tr><th>Age (months)</th><td>${details.age}</td></tr>
+                        <tr><th>Weight (kg)</th><td>${details.weight}</td></tr>
                         <tr><th>Register Time</th><td>${details.register_time}</td></tr>
                         <tr><th>Health Status</th><td>${details.health_status}</td></tr>
+                    </table>
+                    <h3>Vaccine Details</h3>
+                    <table>
+                        <tr><th>Vaccine Type</th><td>${details.vaccine_type}</td></tr>
                         <tr><th>Date to be Vaccinated</th><td>${details.treatment_time}</td></tr>
+                        <tr><th>Next Date to be Vaccinated</th><td>${details.next_vaccine_time}</td></tr>
                     </table>`;
     } else {
       document.getElementById("details").innerHTML =

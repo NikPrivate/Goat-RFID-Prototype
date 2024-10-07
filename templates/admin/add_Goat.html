@@ -1,7 +1,7 @@
 {% extends 'index.html' %} {% block title %} Goat Registration {% endblock %} {%
 block content %}
 <h1>Goat Registration</h1>
-<p>UID: <span id="uid">Waiting...</span></p>
+<p>Goat ID: <span id="uid">Waiting...</span></p>
 <div id="details">Register Goat</div>
 
 <script>
@@ -33,7 +33,7 @@ block content %}
                   details.uid
                 }" method="POST">
                     <div>
-                        <label for="uid">UID</label>
+                        <label for="uid">Goat ID</label>
                         <input type="text" id="uid" name="uid" value="${
                           details.uid
                         }" readonly>
@@ -62,9 +62,15 @@ block content %}
                         </select>
                     </div>
                     <div>
-                        <label for="age">Age</label>
+                        <label for="age">Age (months) </label>
                         <input type="text" id="age" name="age" value="${
                           details.age
+                        }" >
+                    </div>
+                    <div>
+                        <label for="weight">Weight (kg) </label>
+                        <input type="text" id="weight" name="weight" value="${
+                          details.weight
                         }">
                     </div>
                     <div class="register_time-goat">

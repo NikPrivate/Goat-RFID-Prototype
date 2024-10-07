@@ -1,10 +1,16 @@
 {% extends 'index.html' %}
 
+<!-- Select2 CSS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+
+<!-- Select2 JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+
 {% block title %}Treatment Time{% endblock %}
 
 {% block content %}
 <h1>Vaccination Schedule</h1>
-<p>UID: <span id="uid">Waiting...</span></p>
+<p>Goat ID: <span id="uid">Waiting...</span></p>
 <div id="details">Date to be Vaccinated</div>
 
 <script>
@@ -33,8 +39,8 @@
         document.getElementById('details').innerHTML = `
             <form id="goatForm" action="/update_Goat_treatment/${details.uid}" method="POST">
                 <div>
-                    <label for="uid">UID</label>
-                    <input type="text" id="uid" name="uid" value="${details.uid}" readonly>
+                    <label for="input_uid">Goat ID</label>
+                    <input type="text" id="input_uid" name="uid" value="${details.uid}" readonly>
                 </div>
                 <div class="breed-goat-register">
                     <label for="gender">Gender</label>
@@ -59,23 +65,75 @@
                     <label for="register_time">Register Time</label>
                     <input type="datetime-local" id="register_time" name="register_time" value="${details.register_time}">
                 </div>
-                <div>
-                  <label for ="health_status">Health Status</label>
-                  <input type="text" id="health_status" name="health_status" value=${details.health_status}>
+                <div class="breed-goat-register">
+                    <label for="vaccine_type">Vaccine Type</label>
+                    <select id="vaccine_type" name="vaccine_type" class="form-select">
+                        <option value="CD&T (Clostridial Diseases & Tetanus)" ${details.vaccine_type === 'CD&T (Clostridial Diseases & Tetanus)' ? 'selected' : ''}>
+                            CD&T (Clostridial Diseases & Tetanus)
+                        </option>
+                        <option value="Rabies" ${details.vaccine_type === 'Rabies' ? 'selected' : ''}>Rabies</option>
+                        <option value="Pneumonia (Pasteurella)" ${details.vaccine_type === 'Pneumonia (Pasteurella)' ? 'selected' : ''}>Pneumonia (Pasteurella)</option>
+                        <option value="Caseous Lymphadenitis (CL)" ${details.vaccine_type === 'Caseous Lymphadenitis (CL)' ? 'selected' : ''}>Caseous Lymphadenitis (CL)</option>
+                        <option value="Soremouth (Orf)" ${details.vaccine_type === 'Soremouth (Orf)' ? 'selected' : ''}>Soremouth (Orf)</option>
+                        <option value="Foot Rot" ${details.vaccine_type === 'Foot Rot' ? 'selected' : ''}>Foot Rot</option>
+                        <option value="Chlamydia & Campylobacter" ${details.vaccine_type === 'Chlamydia & Campylobacter' ? 'selected' : ''}>Chlamydia & Campylobacter</option>
+                        <option value="Johne’s Disease" ${details.vaccine_type === 'Johne’s Disease' ? 'selected' : ''}>Johne’s Disease</option>
+                    </select>
                 </div>
                 <div>
                   <label for="treatment_time">Date to be Vaccinated</label>
-                  <input type="datetime-local" id="treatment_time" name="treatment_time" value=${details.treatment_time}>
+                  <input type="datetime-local" id="treatment_time" name="treatment_time" value=${new Date(details.treatment_time).toISOString().slice(0, 16)}>
+                </div>
+                <div>
+                  <label for="next_vaccine_time">Next Date to be Vaccinated</label>
+                  <input type="datetime-local" id="next_vaccine_time" name="next_vaccine_time" value=${new Date(details.next_vaccine_time).toISOString().slice(0, 16)} readonly>
                 </div>
                 <button type="submit">Update Goat</button>
             </form>`;
+      
+            // Set event listeners for updates
+            document.getElementById('vaccine_type').addEventListener('change', updateNextVaccineDate);
+            document.getElementById('treatment_time').addEventListener('change', updateNextVaccineDate);
+      
+            // Call updateNextVaccineDate initially to set the next vaccine date if fields are already filled
+            updateNextVaccineDate();
     } else {
         document.getElementById('details').innerHTML = '<p>No details available</p>';
     }
-}
+  }
 
+  // Set an interval to fetch the UID every second
   setInterval(fetchUID, 1000);
 
+  const vaccineIntervals = {
+    "CD&T (Clostridial Diseases & Tetanus)": 12,  // 12 months
+    "Rabies": 12,  // 12 months
+    "Pneumonia (Pasteurella)": 6,  // 6 months
+    "Caseous Lymphadenitis (CL)": 12,  // 12 months
+    "Soremouth (Orf)": 12,  // 12 months
+    "Foot Rot": 6,  // 6 months
+    "Chlamydia & Campylobacter": 12,  // 12 months
+    "Johne’s Disease": 12  // 12 months
+  };
+
+  function updateNextVaccineDate(){
+    const vaccineType = document.getElementById('vaccine_type').value;
+    const treatmentDate = document.getElementById('treatment_time').value;
+
+    if(vaccineType && treatmentDate){
+      const intervalMonths = vaccineIntervals[vaccineType];
+
+      if(intervalMonths){
+        const treatmentDateObj = new Date(treatmentDate);
+        const nextVaccineDateObj = new Date(treatmentDateObj.setMonth(treatmentDateObj.getMonth() + intervalMonths));
+        const formattedNextDate = nextVaccineDateObj.toISOString().slice(0, 16);
+        document.getElementById('next_vaccine_time').value = formattedNextDate;
+      }
+    } else {
+      // Clear the next vaccine date if either value is not selected
+      document.getElementById('next_vaccine_time').value = '';
+    }
+  }
 </script>
 
 {% endblock %}

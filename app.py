@@ -89,19 +89,22 @@ def get_uid_details(uid):
 
     # Format datetime fields for the datetime-local input if they exist
     if 'register_time' in result and result['register_time']:
-        result['register_time'] = result['register_time'].strftime('%Y-%m-%dT%H:%M')
+        result['register_time'] = result['register_time'].strftime('%Y-%m-%d %H:%M')
 
     if 'treatment_time' in result and result['treatment_time']:
-        result['treatment_time'] = result['treatment_time'].strftime('%Y-%m-%dT%H:%M')
+        result['treatment_time'] = result['treatment_time'].strftime('%Y-%m-%d %H:%M')
+        
+    if 'next_vaccine_time' in result and result['next_vaccine_time']:
+        result['next_vaccine_time'] = result['next_vaccine_time'].strftime('%Y-%m-%d %H:%M')
 
     if 'program_date' in result and result['program_date']:
-        result['program_date'] = result['program_date'].strftime('%Y-%m-%dT%H:%M')
+        result['program_date'] = result['program_date'].strftime('%Y-%m-%d  %H:%M')
 
     if 'pregnancy_check_date' in result and result['pregnancy_check_date']:
-        result['pregnancy_check_date'] = result['pregnancy_check_date'].strftime('%Y-%m-%dT%H:%M')
+        result['pregnancy_check_date'] = result['pregnancy_check_date'].strftime('%Y-%m-%d  %H:%M')
 
     if 'expected_birth_date' in result and result['expected_birth_date']:
-        result['expected_birth_date'] = result['expected_birth_date'].strftime('%Y-%m-%dT%H:%M')
+        result['expected_birth_date'] = result['expected_birth_date'].strftime('%Y-%m-%d  %H:%M')
 
     cursor.close()
     conn.close()
@@ -174,13 +177,14 @@ def update_Goat_submit(uid):
     breed = request.form['breed']
     age = request.form['age']
     register_time = request.form['register_time']
+    weight = request.form['weight']
     
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         cursor.execute("""
-            UPDATE goat SET gender=%s, breed=%s, age=%s, register_time=%s WHERE uid=%s
-        """, (gender, breed, age, register_time, uid))
+            UPDATE goat SET gender=%s, breed=%s, age=%s, weight=%s, register_time=%s WHERE uid=%s
+        """, (gender, breed, age, weight, register_time, uid))
         conn.commit()
     except mysql.connector.Error as err:
         print(f"Error: {err}")
@@ -318,15 +322,16 @@ def update_Goat_submit_treatment(uid):
     breed = request.form['breed']
     age = request.form['age']
     register_time = request.form['register_time']
-    health_status = request.form['health_status']
+    vaccine_type = request.form['vaccine_type']
     treatment_time = request.form['treatment_time']
+    next_vaccine_time = request.form['next_vaccine_time']
     
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         cursor.execute("""
-            UPDATE goat SET gender=%s, breed=%s, age=%s, register_time=%s, health_status=%s, treatment_time=%s WHERE uid=%s
-        """, (gender, breed, age, register_time, health_status,treatment_time, uid))
+            UPDATE goat SET gender=%s, breed=%s, age=%s, register_time=%s, vaccine_type=%s, treatment_time=%s, next_vaccine_time=%s WHERE uid=%s
+        """, (gender, breed, age, register_time, vaccine_type, treatment_time, next_vaccine_time, uid))
         conn.commit()
     except mysql.connector.Error as err:
         print(f"Error: {err}")
@@ -696,9 +701,31 @@ def feedPriceCalc():
     
 @app.route('/feedCalc', methods=['GET', 'POST'])
 def feedCalc():
-    weight = dmi = freshfodder = valueHay = konsentrat = None
+    numofgoats = weight = dmi = freshfodder = valueHay = konsentrat = None
     content = {}
     
+    # Initialize avg_weight
+    avg_weight = None
+    
+    if request.method == 'GET':
+        try:
+            conn = mysql.connector.connect(**DB_CONFIG)
+            cursor = conn.cursor()
+            
+            cursor.execute("SELECT AVG(weight) FROM goat")
+            avg_weight = cursor.fetchone()[0]
+            cursor.close()
+        
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+            return "An error occurred while getting the average value of goats"
+
+        avg_weight = round(avg_weight, 2) if avg_weight is not None else None
+
+        # Set weight to avg_weight on GET request
+        weight = avg_weight  # Set the input weight to avg_weight initially
+    
+    # Define stage coefficients
     pembesaran = 0.04
     maintenance = 0.03
     pembiakan = 0.036
@@ -706,25 +733,25 @@ def feedCalc():
     
     if request.method == 'POST':
         try:
-            weight = float(request.form['weight'])
+            numofgoats = float(request.form['numofgoats'])
+            weight = float(request.form['weight'])  # This will take user input
             stage = request.form['stage']
             hay = request.form['hay']
             
+            # Calculate DMI based on stage
             if stage == 'pembesaran':
-                dmi = round(weight * 0.04,2)
+                dmi = round(weight * pembesaran * numofgoats, 2)
             elif stage == 'maintenance':
-                dmi = round(weight * 0.03,2)
+                dmi = round(weight * maintenance * numofgoats, 2)
             elif stage == 'pembiakan':
-                dmi = round(weight * 0.036,2)
+                dmi = round(weight * pembiakan * numofgoats, 2)
             elif stage == 'menyusu':
-                dmi = round(weight * 0.043,2)
+                dmi = round(weight * menyusu * numofgoats, 2)
                 
-            freshfodder = round(dmi * 0.7 * 5.3,2)
-            if hay == 'yesHay':
-                valueHay = round(dmi * 0.1,2)
-            else:
-                valueHay = 0.0
-            konsentrat = round(dmi * 0.2,2)   
+            # Calculate other feed values
+            freshfodder = round(numofgoats * dmi * 0.7 * 5.3, 2)
+            valueHay = round(numofgoats * dmi * 0.1, 2) if hay == 'yesHay' else 0.0
+            konsentrat = round(numofgoats * dmi * 0.2, 2)   
             
             content = {
                 'dmi' : dmi,
@@ -733,11 +760,12 @@ def feedCalc():
                 'konsentrat' : konsentrat
             }
             
-        
         except ValueError:
             result = "Invalid input"
     
-    return render_template('admin/feedCalc.html',weight=weight, dmi=dmi, freshfodder=freshfodder, valueHay=valueHay, konsentrat=konsentrat, content=content)
+    return render_template('admin/feedCalc.html', avg_weight=avg_weight, numofgoats=numofgoats, weight=weight, dmi=dmi, freshfodder=freshfodder, valueHay=valueHay, konsentrat=konsentrat, content=content)
+
+
 
 @app.route('/health_stats', methods=['GET','POST'])
 def health_stats():
