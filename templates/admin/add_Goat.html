@@ -69,7 +69,7 @@ block content %}
                         <label for="age">Age (days) </label>
                         <input type="text" id="age" name="age" value="${
                           details.age
-                        }" >
+                        }">
                     </div>
                     <div>
                         <label for="weight">Weight (kg) </label>
@@ -77,10 +77,16 @@ block content %}
                           details.weight
                         }">
                     </div>
-                    <div class="register_time-goat">
+                    <div>
                         <label for="register_time">Register Time</label>
                         <input type="datetime-local" id="register_time" name="register_time" value="${
                           details.register_time
+                        }">
+                    </div>
+                    <div>
+                        <label for="birth_date">Birth Date</label>
+                        <input type="datetime-local" id="birth_date" name="birth_date" value="${
+                          details.birth_date
                         }">
                     </div>
                     <button type="submit">Register</button>

@@ -67,7 +67,7 @@ def get_uid_details(uid):
     cursor = conn.cursor(dictionary=True)
     
     # Query to get data from the 'goat' table
-    cursor.execute("SELECT uid, gender, image_path, breed, DATEDIFF(CURDATE(), register_time) AS age, weight, register_time, health_status, vaccine_type, treatment_time, next_vaccine_time, rfid_scan_time  FROM goat WHERE uid = %s", (uid,))
+    cursor.execute("SELECT uid, gender, image_path, breed, DATEDIFF(CURDATE(), birth_date) AS age, weight, register_time, birth_date, health_status, vaccine_type, treatment_time, next_vaccine_time, rfid_scan_time  FROM goat WHERE uid = %s", (uid,))
     goat_result = cursor.fetchone()
     
     # Query to get data from the 'breeding' table
@@ -92,6 +92,9 @@ def get_uid_details(uid):
     # Format datetime fields for the datetime-local input if they exist
     if 'register_time' in result and result['register_time']:
         result['register_time'] = result['register_time'].strftime('%Y-%m-%d %H:%M')
+        
+    if 'birth_date' in result and result['birth_date']:
+        result['birth_date'] = result['birth_date'].strftime('%Y-%m-%d %H:%M')
 
     if 'treatment_time' in result and result['treatment_time']:
         result['treatment_time'] = result['treatment_time'].strftime('%Y-%m-%d %H:%M')
@@ -187,6 +190,7 @@ def update_Goat_submit(uid):
     breed = request.form['breed']
     age = request.form['age']
     register_time = request.form['register_time']
+    birth_date = request.form['birth_date']
     weight = request.form['weight']
     
     image_path = None
@@ -208,13 +212,13 @@ def update_Goat_submit(uid):
         # If an image is uploaded, update the image_path in the database
         if image_path:
             cursor.execute("""
-                UPDATE goat SET gender=%s, breed=%s, age=DATEDIFF(CURDATE(), register_time), weight=%s, register_time=%s, image_path=%s WHERE uid=%s
-            """, (gender, breed, age, weight, register_time, image_path, uid))
+                UPDATE goat SET gender=%s, breed=%s, age=DATEDIFF(CURDATE(), birth_date), weight=%s, register_time=%s, birth_date=%s, image_path=%s WHERE uid=%s
+            """, (gender, breed, weight, register_time, birth_date, image_path, uid))
         else:
             # If no image was uploaded, update the other fields but leave the image_path unchanged
             cursor.execute("""
-                UPDATE goat SET gender=%s, breed=%s, age=%s, weight=%s, register_time=%s WHERE uid=%s
-            """, (gender, breed, age, weight, register_time, uid))
+                UPDATE goat SET gender=%s, breed=%s, age=%s, weight=%s, register_time=%s, birth_date=%s WHERE uid=%s
+            """, (gender, breed, weight, register_time, birth_date, uid))
 
         conn.commit()
     except mysql.connector.Error as err:

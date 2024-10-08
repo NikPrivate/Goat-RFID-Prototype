@@ -1,14 +1,15 @@
 {% extends 'index.html' %}
 
 <!-- Select2 CSS -->
-<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+<link
+  href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css"
+  rel="stylesheet"
+/>
 
 <!-- Select2 JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
 
-{% block title %}Treatment Time{% endblock %}
-
-{% block content %}
+{% block title %}Treatment Time{% endblock %} {% block content %}
 <h1>Vaccination Schedule</h1>
 <p>Goat ID: <span id="uid">Waiting...</span></p>
 <div id="details">Date to be Vaccinated</div>
@@ -16,89 +17,148 @@
 <script>
   let uidFound = false;
 
-  async function fetchUID(){
+  async function fetchUID() {
     if (uidFound) return;
 
     const response = await fetch(`/latest_uid`);
     const data = await response.json();
-    const uid = data.uid || 'No UID scanned';
-    document.getElementById('uid').innerText = uid;
+    const uid = data.uid || "No UID scanned";
+    document.getElementById("uid").innerText = uid;
 
-    if(uid !== 'No UID scanned'){
+    if (uid !== "No UID scanned") {
       uidFound = true;
       const detailsResponse = await fetch(`/uid_details/${uid}`);
       const details = await detailsResponse.json();
       displayDetails(details);
     } else {
-      document.getElementById('details').innerHTML = '<p>No details available</p>';
+      document.getElementById("details").innerHTML =
+        "<p>No details available</p>";
     }
   }
 
   function displayDetails(details) {
     if (details) {
-        document.getElementById('details').innerHTML = `
-            <form id="goatForm" action="/update_Goat_treatment/${details.uid}" method="POST">
+      document.getElementById("details").innerHTML = `
+            <form id="goatForm" action="/update_Goat_treatment/${
+              details.uid
+            }" method="POST">
                 <div>
                     <label for="input_uid">Goat ID</label>
-                    <input type="text" id="input_uid" name="uid" value="${details.uid}" readonly>
+                    <input type="text" id="input_uid" name="uid" value="${
+                      details.uid
+                    }" readonly>
                 </div>
                 <div class="breed-goat-register">
                     <label for="gender">Gender</label>
-                     <select id="gender" name="gender" class="form-select">
-                        <option value="Male" ${details.gender === 'Male' ? 'selected' : ''}>Male</option>
-                        <option value="Female" ${details.gender === 'Female' ? 'selected' : ''}>Female</option>
+                     <select id="gender" name="gender" class="form-select" disabled>
+                        <option value="Male" ${
+                          details.gender === "Male" ? "selected" : ""
+                        }>Male</option>
+                        <option value="Female" ${
+                          details.gender === "Female" ? "selected" : ""
+                        }>Female</option>
                     </select>
                 </div>
                 <div class="breed-goat-register">
                     <label for="breed">Breed</label>
-                    <select id="breed" name="breed" class="form-select">
-                        <option value="Alpine" ${details.breed === 'Alpine' ? 'selected' : ''}>Alpine</option>
-                        <option value="Boer" ${details.breed === 'Boer' ? 'selected' : ''}>Boer</option>
+                    <select id="breed" name="breed" class="form-select" disabled>
+                        <option value="Alpine" ${
+                          details.breed === "Alpine" ? "selected" : ""
+                        }>Alpine</option>
+                        <option value="Boer" ${
+                          details.breed === "Boer" ? "selected" : ""
+                        }>Boer</option>
                         <!-- Add more options as needed -->
                     </select>
                 </div>
                 <div>
-                    <label for="age">Age</label>
-                    <input type="text" id="age" name="age" value="${details.age}">
+                    <label for="age">Age (days)</label>
+                    <input type="text" id="age" name="age" value="${
+                      details.age
+                    }" readonly>
                 </div>
                 <div>
                     <label for="register_time">Register Time</label>
-                    <input type="datetime-local" id="register_time" name="register_time" value="${details.register_time}">
+                    <input type="datetime-local" id="register_time" name="register_time" value="${
+                      details.register_time
+                    }" readonly>
                 </div>
                 <div class="breed-goat-register">
                     <label for="vaccine_type">Vaccine Type</label>
                     <select id="vaccine_type" name="vaccine_type" class="form-select">
-                        <option value="CD&T (Clostridial Diseases & Tetanus)" ${details.vaccine_type === 'CD&T (Clostridial Diseases & Tetanus)' ? 'selected' : ''}>
+                        <option value="CD&T (Clostridial Diseases & Tetanus)" ${
+                          details.vaccine_type ===
+                          "CD&T (Clostridial Diseases & Tetanus)"
+                            ? "selected"
+                            : ""
+                        }>
                             CD&T (Clostridial Diseases & Tetanus)
                         </option>
-                        <option value="Rabies" ${details.vaccine_type === 'Rabies' ? 'selected' : ''}>Rabies</option>
-                        <option value="Pneumonia (Pasteurella)" ${details.vaccine_type === 'Pneumonia (Pasteurella)' ? 'selected' : ''}>Pneumonia (Pasteurella)</option>
-                        <option value="Caseous Lymphadenitis (CL)" ${details.vaccine_type === 'Caseous Lymphadenitis (CL)' ? 'selected' : ''}>Caseous Lymphadenitis (CL)</option>
-                        <option value="Soremouth (Orf)" ${details.vaccine_type === 'Soremouth (Orf)' ? 'selected' : ''}>Soremouth (Orf)</option>
-                        <option value="Foot Rot" ${details.vaccine_type === 'Foot Rot' ? 'selected' : ''}>Foot Rot</option>
-                        <option value="Chlamydia & Campylobacter" ${details.vaccine_type === 'Chlamydia & Campylobacter' ? 'selected' : ''}>Chlamydia & Campylobacter</option>
-                        <option value="Johne’s Disease" ${details.vaccine_type === 'Johne’s Disease' ? 'selected' : ''}>Johne’s Disease</option>
+                        <option value="Rabies" ${
+                          details.vaccine_type === "Rabies" ? "selected" : ""
+                        }>Rabies</option>
+                        <option value="Pneumonia (Pasteurella)" ${
+                          details.vaccine_type === "Pneumonia (Pasteurella)"
+                            ? "selected"
+                            : ""
+                        }>Pneumonia (Pasteurella)</option>
+                        <option value="Caseous Lymphadenitis (CL)" ${
+                          details.vaccine_type === "Caseous Lymphadenitis (CL)"
+                            ? "selected"
+                            : ""
+                        }>Caseous Lymphadenitis (CL)</option>
+                        <option value="Soremouth (Orf)" ${
+                          details.vaccine_type === "Soremouth (Orf)"
+                            ? "selected"
+                            : ""
+                        }>Soremouth (Orf)</option>
+                        <option value="Foot Rot" ${
+                          details.vaccine_type === "Foot Rot" ? "selected" : ""
+                        }>Foot Rot</option>
+                        <option value="Chlamydia & Campylobacter" ${
+                          details.vaccine_type === "Chlamydia & Campylobacter"
+                            ? "selected"
+                            : ""
+                        }>Chlamydia & Campylobacter</option>
+                        <option value="Johne’s Disease" ${
+                          details.vaccine_type === "Johne’s Disease"
+                            ? "selected"
+                            : ""
+                        }>Johne’s Disease</option>
                     </select>
                 </div>
                 <div>
                   <label for="treatment_time">Date to be Vaccinated</label>
-                  <input type="datetime-local" id="treatment_time" name="treatment_time" value=${new Date(details.treatment_time).toISOString().slice(0, 16)}>
+                  <input type="datetime-local" id="treatment_time" name="treatment_time" value=${new Date(
+                    details.treatment_time
+                  )
+                    .toISOString()
+                    .slice(0, 16)}>
                 </div>
                 <div>
                   <label for="next_vaccine_time">Next Date to be Vaccinated</label>
-                  <input type="datetime-local" id="next_vaccine_time" name="next_vaccine_time" value=${new Date(details.next_vaccine_time).toISOString().slice(0, 16)} readonly>
+                  <input type="datetime-local" id="next_vaccine_time" name="next_vaccine_time" value=${new Date(
+                    details.next_vaccine_time
+                  )
+                    .toISOString()
+                    .slice(0, 16)} readonly>
                 </div>
                 <button type="submit">Update Goat</button>
             </form>`;
-      
-            // Set event listeners for updates
-            document.getElementById('vaccine_type').addEventListener('change', updateNextVaccineDate);
-            document.getElementById('treatment_time').addEventListener('change', updateNextVaccineDate);
-      
-            // Call updateNextVaccineDate initially to set the next vaccine date if fields are already filled
-            updateNextVaccineDate();
+
+      // Set event listeners for updates
+      document
+        .getElementById("vaccine_type")
+        .addEventListener("change", updateNextVaccineDate);
+      document
+        .getElementById("treatment_time")
+        .addEventListener("change", updateNextVaccineDate);
+
+      // Call updateNextVaccineDate initially to set the next vaccine date if fields are already filled
+      updateNextVaccineDate();
     } else {
-        document.getElementById('details').innerHTML = '<p>No details available</p>';
+      document.getElementById("details").innerHTML =
+        "<p>No details available</p>";
     }
   }
 
@@ -106,32 +166,36 @@
   setInterval(fetchUID, 1000);
 
   const vaccineIntervals = {
-    "CD&T (Clostridial Diseases & Tetanus)": 12,  // 12 months
-    "Rabies": 12,  // 12 months
-    "Pneumonia (Pasteurella)": 6,  // 6 months
-    "Caseous Lymphadenitis (CL)": 12,  // 12 months
-    "Soremouth (Orf)": 12,  // 12 months
-    "Foot Rot": 6,  // 6 months
-    "Chlamydia & Campylobacter": 12,  // 12 months
-    "Johne’s Disease": 12  // 12 months
+    "CD&T (Clostridial Diseases & Tetanus)": 12, // 12 months
+    Rabies: 12, // 12 months
+    "Pneumonia (Pasteurella)": 6, // 6 months
+    "Caseous Lymphadenitis (CL)": 12, // 12 months
+    "Soremouth (Orf)": 12, // 12 months
+    "Foot Rot": 6, // 6 months
+    "Chlamydia & Campylobacter": 12, // 12 months
+    "Johne’s Disease": 12, // 12 months
   };
 
-  function updateNextVaccineDate(){
-    const vaccineType = document.getElementById('vaccine_type').value;
-    const treatmentDate = document.getElementById('treatment_time').value;
+  function updateNextVaccineDate() {
+    const vaccineType = document.getElementById("vaccine_type").value;
+    const treatmentDate = document.getElementById("treatment_time").value;
 
-    if(vaccineType && treatmentDate){
+    if (vaccineType && treatmentDate) {
       const intervalMonths = vaccineIntervals[vaccineType];
 
-      if(intervalMonths){
+      if (intervalMonths) {
         const treatmentDateObj = new Date(treatmentDate);
-        const nextVaccineDateObj = new Date(treatmentDateObj.setMonth(treatmentDateObj.getMonth() + intervalMonths));
+        const nextVaccineDateObj = new Date(
+          treatmentDateObj.setMonth(
+            treatmentDateObj.getMonth() + intervalMonths
+          )
+        );
         const formattedNextDate = nextVaccineDateObj.toISOString().slice(0, 16);
-        document.getElementById('next_vaccine_time').value = formattedNextDate;
+        document.getElementById("next_vaccine_time").value = formattedNextDate;
       }
     } else {
       // Clear the next vaccine date if either value is not selected
-      document.getElementById('next_vaccine_time').value = '';
+      document.getElementById("next_vaccine_time").value = "";
     }
   }
 </script>
