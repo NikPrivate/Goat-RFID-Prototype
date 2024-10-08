@@ -237,6 +237,7 @@ def add_BabyGoat():
     dad_uid = request.form['dad_uid']
     breed = request.form['breed']
     register_time = request.form['register_time']
+    birth_date = request.form['birth_date']
     health_status = request.form['health_status']
     treatment_time = request.form['treatment_time']
     
@@ -245,8 +246,8 @@ def add_BabyGoat():
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO baby_goat (uid, mom_uid, dad_uid, breed, register_time, health_status, treatment_time) VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """, (uid, mom_uid, dad_uid, breed, register_time, health_status, treatment_time))
+            INSERT INTO baby_goat (uid, mom_uid, dad_uid, breed, register_time, birth_date, health_status, treatment_time) VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (uid, mom_uid, dad_uid, breed, register_time, birth_date, health_status, treatment_time))
         
         conn.commit()
         
@@ -271,10 +272,13 @@ def view_BabyGoat():
         
         for result in results:
             if result['register_time']:
-                result['register_time'] = result['register_time'].strftime('%Y-%m-%dT%H:%M')
+                result['register_time'] = result['register_time'].strftime('%Y-%m-%d %H:%M')
             
             if result['treatment_time']:
-                result['treatment_time'] = result['treatment_time'].strftime('%Y-%m-%dT%H:%M')
+                result['treatment_time'] = result['treatment_time'].strftime('%Y-%m-%d %H:%M')
+                
+            if result['birth_date']:
+                result['birth_date'] = result['birth_date'].strftime('%Y-%m-%d %H:%M')
          # Fetch family data and build family tree
         family_data = birth_cert()  # Ensure this function retrieves all family data
         family_tree = build_birth_tree(family_data)  # Build the family tree
@@ -300,12 +304,13 @@ def edit_BabyGoat(id):
             dad_uid = request.form['dad_uid']
             breed = request.form['breed']
             register_time = request.form['register_time']
+            birth_date = request.form['birth_date']
             health_status = request.form['health_status']
             treatment_time = request.form['treatment_time']
             
             cursor.execute("""
                 UPDATE baby_goat
-                SET mom_uid=%s, dad_uid=%s, breed=%s, register_time=%s, health_status=%s, treatment_time=%s WHERE uid=%s
+                SET mom_uid=%s, dad_uid=%s, breed=%s, register_time=%s, birth_date=%s, health_status=%s, treatment_time=%s WHERE uid=%s
             """, (mom_uid, dad_uid, breed, register_time, health_status, treatment_time, id))
             
             conn.commit()
@@ -324,6 +329,9 @@ def edit_BabyGoat(id):
             
             if baby_goat['treatment_time']:
                 baby_goat['treatment_time'] = baby_goat['treatment_time'].strftime('%Y-%m-%dT%H:%M')
+                
+            if baby_goat['birth_date']:
+                baby_goat['birth_date'] = baby_goat['birth_date'].strftime('%Y-%m-%dT%H:%M')
                 
         cursor.close()
         conn.close()
