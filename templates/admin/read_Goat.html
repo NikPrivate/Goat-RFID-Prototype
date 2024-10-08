@@ -23,22 +23,27 @@ block content %}
 
   function displayDetails(details) {
     if (details) {
+      const imagePath = details.image_path
+        ? `${details.image_path}`
+        : "/static/uploads/default.jpg"; // Default image if none is uploaded
+
       document.getElementById("details").innerHTML = `
-                    <table>
-                        <tr><th>Goat ID</th><td>${details.uid}</td></tr>
-                        <tr><th>Gender</th><td>${details.gender}</td></tr>
-                        <tr><th>Breed</th><td>${details.breed}</td></tr>
-                        <tr><th>Age (months)</th><td>${details.age}</td></tr>
-                        <tr><th>Weight (kg)</th><td>${details.weight}</td></tr>
-                        <tr><th>Register Time</th><td>${details.register_time}</td></tr>
-                        <tr><th>Health Status</th><td>${details.health_status}</td></tr>
-                    </table>
-                    <h3>Vaccine Details</h3>
-                    <table>
-                        <tr><th>Vaccine Type</th><td>${details.vaccine_type}</td></tr>
-                        <tr><th>Date to be Vaccinated</th><td>${details.treatment_time}</td></tr>
-                        <tr><th>Next Date to be Vaccinated</th><td>${details.next_vaccine_time}</td></tr>
-                    </table>`;
+        <img src="${imagePath}" alt="Goat Image" style="max-width: 300px; height: auto;">
+        <table>
+          <tr><th>Goat ID</th><td>${details.uid}</td></tr>
+          <tr><th>Gender</th><td>${details.gender}</td></tr>
+          <tr><th>Breed</th><td>${details.breed}</td></tr>
+          <tr><th>Age (days)</th><td>${details.age}</td></tr>
+          <tr><th>Weight (kg)</th><td>${details.weight}</td></tr>
+          <tr><th>Register Time</th><td>${details.register_time}</td></tr>
+          <tr><th>Health Status</th><td>${details.health_status}</td></tr>
+        </table>
+        <h3>Vaccine Details</h3>
+        <table>
+          <tr><th>Vaccine Type</th><td>${details.vaccine_type}</td></tr>
+          <tr><th>Date to be Vaccinated</th><td>${details.treatment_time}</td></tr>
+          <tr><th>Next Date to be Vaccinated</th><td>${details.next_vaccine_time}</td></tr>
+        </table>`;
     } else {
       document.getElementById("details").innerHTML =
         "<p>No details available</p>";

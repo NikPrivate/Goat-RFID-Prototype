@@ -3,6 +3,8 @@ from datetime import datetime
 from collections import defaultdict
 import mysql.connector
 import hashlib
+from werkzeug.utils import secure_filename
+import os
 
 app = Flask(__name__)
 app.secret_key = 'WBl7qpIdJN4K3m1j'
@@ -65,7 +67,7 @@ def get_uid_details(uid):
     cursor = conn.cursor(dictionary=True)
     
     # Query to get data from the 'goat' table
-    cursor.execute("SELECT * FROM goat WHERE uid = %s", (uid,))
+    cursor.execute("SELECT uid, gender, image_path, breed, DATEDIFF(CURDATE(), register_time) AS age, weight, register_time, health_status, vaccine_type, treatment_time, next_vaccine_time, rfid_scan_time  FROM goat WHERE uid = %s", (uid,))
     goat_result = cursor.fetchone()
     
     # Query to get data from the 'breeding' table
@@ -171,6 +173,14 @@ def admin_page():
     return render_template('admin/admin_page.html')
 
     
+# Define the upload folder and allowed extensions
+UPLOAD_FOLDER = 'static/'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 @app.route('/update_Goat/<uid>', methods=['POST'])
 def update_Goat_submit(uid):
     gender = request.form['gender']
@@ -179,12 +189,33 @@ def update_Goat_submit(uid):
     register_time = request.form['register_time']
     weight = request.form['weight']
     
+    image_path = None
+
+    # Check if the POST request has the file part
+    if 'image' in request.files:
+        file = request.files['image']
+        
+        # If a valid image file is provided, save it
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(image_path)
+
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
-        cursor.execute("""
-            UPDATE goat SET gender=%s, breed=%s, age=%s, weight=%s, register_time=%s WHERE uid=%s
-        """, (gender, breed, age, weight, register_time, uid))
+
+        # If an image is uploaded, update the image_path in the database
+        if image_path:
+            cursor.execute("""
+                UPDATE goat SET gender=%s, breed=%s, age=DATEDIFF(CURDATE(), register_time), weight=%s, register_time=%s, image_path=%s WHERE uid=%s
+            """, (gender, breed, age, weight, register_time, image_path, uid))
+        else:
+            # If no image was uploaded, update the other fields but leave the image_path unchanged
+            cursor.execute("""
+                UPDATE goat SET gender=%s, breed=%s, age=%s, weight=%s, register_time=%s WHERE uid=%s
+            """, (gender, breed, age, weight, register_time, uid))
+
         conn.commit()
     except mysql.connector.Error as err:
         print(f"Error: {err}")
@@ -193,6 +224,7 @@ def update_Goat_submit(uid):
         conn.close()
 
     return redirect(url_for('read_Goat'))
+
 
 @app.route('/add_BabyGoat', methods=['POST'])
 def add_BabyGoat():
@@ -558,31 +590,34 @@ def breeding():
 @app.route('/add_breeding', methods=['POST'])
 def add_breeding():
     uid = request.form['uid']
-    partner_uid = request.form['partner_uid']
+    partner_uids = request.form.getlist('partner_uid[]')  # Get all partner_uid inputs
     program_date = request.form['program_date']
     pregnancy_check_date = request.form['pregnancy_check_date']
     expected_birth_date = request.form['expected_birth_date']
     breeding_method = request.form['breeding_method']
     
+    
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
-        cursor.execute("""
-            INSERT INTO breeding (uid, partner_uid, program_date, pregnancy_check_date, expected_birth_date, breeding_method) VALUES (%s, %s, %s, %s, %s, %s)
-        """, (uid, partner_uid, program_date, pregnancy_check_date, expected_birth_date, breeding_method))
+
+        # Insert each partner_uid into the database
+        for partner_uid in partner_uids:
+            cursor.execute("""
+                INSERT INTO breeding (uid, partner_uid, program_date, pregnancy_check_date, expected_birth_date, breeding_method)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, (uid, partner_uid, program_date, pregnancy_check_date, expected_birth_date, breeding_method))
         
         conn.commit()
-        
         cursor.close()
         conn.close()
-        
-        return redirect (url_for('breeding'))
-        
-        
-    
+
+        return redirect(url_for('breeding'))
+
     except mysql.connector.Error as err:
         print(f"Error: {err}")
-        return "Error on inserting breeding progran details into database", 500
+        return "Error inserting breeding program details into the database", 500
+
     
 @app.route('/view_breeding')
 def view_breeding():
@@ -594,13 +629,13 @@ def view_breeding():
         
         for result in results:
             if result['program_date']:
-                result['program_date'] = result['program_date'].strftime('%Y-%m-%dT%H:%M')
+                result['program_date'] = result['program_date'].strftime('%Y-%m-%d %H:%M')
                 
             if result['pregnancy_check_date']:
-                result['pregnancy_check_date'] = result['pregnancy_check_date'].strftime('%Y-%m-%dT%H:%M')
+                result['pregnancy_check_date'] = result['pregnancy_check_date'].strftime('%Y-%m-%d %H:%M')
             
             if result['expected_birth_date']:
-                result['expected_birth_date'] = result['expected_birth_date'].strftime('%Y-%m-%dT%H:%M')
+                result['expected_birth_date'] = result['expected_birth_date'].strftime('%Y-%m-%d %H:%M')
                 
         cursor.close()
         conn.close()

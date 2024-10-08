@@ -507,3 +507,56 @@ input[type="datetime-local"] {
   justify-content: center;
   margin-top: 20px;
 }
+
+.btn_partner_container {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.add_partner {
+  text-align: right;
+  margin-top: 10px;
+  margin-right: 10px;
+}
+
+.add_partner button {
+  padding: 8px 16px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  background-color: #4caf50; /* Change this color to match your design */
+  color: white;
+}
+
+.add_partner button:hover {
+  background-color: #45a049; /* Optional: add hover effect */
+}
+
+.remove_partner {
+  text-align: right;
+  margin-top: 10px;
+}
+
+.remove_partner button {
+  padding: 8px 16px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  background-color: red;
+  color: white;
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center; /* To center text inside the div as well */
+  min-height: 300px; /* Adjust this based on your layout */
+}
+
+.details img {
+  max-width: 300px;
+  height: auto;
+  margin-bottom: 20px; /* Add space between image and the table */
+}
