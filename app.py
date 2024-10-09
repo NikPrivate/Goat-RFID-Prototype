@@ -674,9 +674,14 @@ def add_breeding():
 
         # Insert each partner_uid into the database
         for partner_uid in partner_uids:
-            # Check if the partner is either the mom or dad
+            # Check if the partner is eith
+            # 
+            # er the mom or dad
             if partner_uid == mom_uid or partner_uid == dad_uid:
                 return "Breeding not allowed: partner cannot be the mom or dad", 400
+            
+            if uid == partner_uid:
+                return "Breeding not allowed: a goat cannot breed with itself", 400
 
             cursor.execute("""
                 INSERT INTO breeding (uid, partner_uid, program_date, pregnancy_check_date, expected_birth_date, breeding_method)
