@@ -42,6 +42,14 @@ block content %}
                       <label>Upload Goat Image</label>
                       <input type="file" id="image" name="image" accept ="image/*">
                     </div>
+                    ${
+                      details.image_path
+                        ? `<div>
+                            <label>Current Image:</label>
+                            <img src="${details.image_path}" alt="Goat Image" style="width: 150px; height: 150px;">
+                          </div>`
+                        : ""
+                    }
                     <div class="gender-goat-register">
                         <label for="gender" class="form-label">Gender</label>
                          <select id="gender" name="gender" class="form-select">

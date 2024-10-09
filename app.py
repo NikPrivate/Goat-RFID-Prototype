@@ -188,7 +188,6 @@ def allowed_file(filename):
 def update_Goat_submit(uid):
     gender = request.form['gender']
     breed = request.form['breed']
-    age = request.form['age']
     register_time = request.form['register_time']
     birth_date = request.form['birth_date']
     weight = request.form['weight']
@@ -209,25 +208,31 @@ def update_Goat_submit(uid):
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
 
+        # Fetch the current image path from the database if no new image is uploaded
+        cursor.execute("SELECT image_path FROM goat WHERE uid=%s", (uid,))
+        current_image_path = cursor.fetchone()[0]
+
         # If an image is uploaded, update the image_path in the database
         if image_path:
             cursor.execute("""
-                UPDATE goat SET gender=%s, breed=%s, age=DATEDIFF(CURDATE(), birth_date), weight=%s, register_time=%s, birth_date=%s, image_path=%s WHERE uid=%s
-            """, (gender, breed, weight, register_time, birth_date, image_path, uid))
+                UPDATE goat SET gender=%s, breed=%s, age=DATEDIFF(CURDATE(), %s), weight=%s, register_time=%s, birth_date=%s, image_path=%s WHERE uid=%s
+            """, (gender, breed, birth_date, weight, register_time, birth_date, image_path, uid))
         else:
-            # If no image was uploaded, update the other fields but leave the image_path unchanged
+            # If no image was uploaded, update the other fields but keep the existing image_path
             cursor.execute("""
-                UPDATE goat SET gender=%s, breed=%s, age=%s, weight=%s, register_time=%s, birth_date=%s WHERE uid=%s
-            """, (gender, breed, weight, register_time, birth_date, uid))
+                UPDATE goat SET gender=%s, breed=%s, age=DATEDIFF(CURDATE(), %s), weight=%s, register_time=%s, birth_date=%s, image_path=%s WHERE uid=%s
+            """, (gender, breed, birth_date, weight, register_time, birth_date, current_image_path, uid))
 
         conn.commit()
     except mysql.connector.Error as err:
         print(f"Error: {err}")
+        return "An error occurred while updating the goat information.", 500
     finally:
         cursor.close()
         conn.close()
 
     return redirect(url_for('read_Goat'))
+
 
 
 @app.route('/add_BabyGoat', methods=['POST'])
@@ -237,7 +242,6 @@ def add_BabyGoat():
     dad_uid = request.form['dad_uid']
     breed = request.form['breed']
     register_time = request.form['register_time']
-    birth_date = request.form['birth_date']
     health_status = request.form['health_status']
     treatment_time = request.form['treatment_time']
     
@@ -246,8 +250,8 @@ def add_BabyGoat():
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO baby_goat (uid, mom_uid, dad_uid, breed, register_time, birth_date, health_status, treatment_time) VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """, (uid, mom_uid, dad_uid, breed, register_time, birth_date, health_status, treatment_time))
+            INSERT INTO baby_goat (uid, mom_uid, dad_uid, breed, register_time, health_status, treatment_time) VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (uid, mom_uid, dad_uid, breed, register_time, health_status, treatment_time))
         
         conn.commit()
         
@@ -277,8 +281,6 @@ def view_BabyGoat():
             if result['treatment_time']:
                 result['treatment_time'] = result['treatment_time'].strftime('%Y-%m-%d %H:%M')
                 
-            if result['birth_date']:
-                result['birth_date'] = result['birth_date'].strftime('%Y-%m-%d %H:%M')
          # Fetch family data and build family tree
         family_data = birth_cert()  # Ensure this function retrieves all family data
         family_tree = build_birth_tree(family_data)  # Build the family tree
@@ -292,6 +294,57 @@ def view_BabyGoat():
         print(f"Error: {err}")
         return "An error is occurred while viewing the baby goat details"
     
+def birth_cert():
+    
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor(dictionary=True)
+    
+    cursor.execute("""
+        SELECT uid, mom_uid, dad_uid FROM baby_goat
+        """)
+
+    family = cursor.fetchall()
+    conn.close()
+    
+    return family
+
+def build_birth_tree(family_data):
+    family_tree = {}
+
+    for goat in family_data:
+        uid = goat['uid']
+        mom_uid = goat.get('mom_uid')  # Use .get() to avoid KeyError
+        dad_uid = goat.get('dad_uid')  # Use .get() to avoid KeyError
+
+        # Skip entries where mom_uid or dad_uid is missing
+        if not mom_uid or not dad_uid:
+            continue
+
+        # Create or update the family tree structure for the mother
+        if mom_uid not in family_tree:
+            family_tree[mom_uid] = {'role': 'Mother', 'dad_uid': dad_uid, 'children': []}
+        
+        # Add the father to the same structure, ensuring dad_uid is present
+        if 'dad_uid' not in family_tree[mom_uid]:
+            family_tree[mom_uid]['dad_uid'] = dad_uid
+
+        # Add the child under this family node
+        family_tree[mom_uid]['children'].append(uid)
+
+    # Final structure for rendering: ensuring unique children and both parents are present
+    final_tree = {}
+    for mom_uid, data in family_tree.items():
+        dad_uid = data.get('dad_uid', 'Unknown Father')  # Handle missing dad_uid more gracefully
+        if mom_uid not in final_tree:
+            final_tree[mom_uid] = {
+                'mom_uid': mom_uid,
+                'dad_uid': dad_uid,
+                'children': list(set(data['children']))  # Ensure unique children
+            }
+    
+    return final_tree
+
+    
 @app.route('/edit_BabyGoat/<string:id>', methods=['GET', 'POST'])
 def edit_BabyGoat(id):
     try:
@@ -304,13 +357,12 @@ def edit_BabyGoat(id):
             dad_uid = request.form['dad_uid']
             breed = request.form['breed']
             register_time = request.form['register_time']
-            birth_date = request.form['birth_date']
             health_status = request.form['health_status']
             treatment_time = request.form['treatment_time']
             
             cursor.execute("""
                 UPDATE baby_goat
-                SET mom_uid=%s, dad_uid=%s, breed=%s, register_time=%s, birth_date=%s, health_status=%s, treatment_time=%s WHERE uid=%s
+                SET mom_uid=%s, dad_uid=%s, breed=%s, register_time=%s, health_status=%s, treatment_time=%s WHERE uid=%s
             """, (mom_uid, dad_uid, breed, register_time, health_status, treatment_time, id))
             
             conn.commit()
@@ -329,9 +381,7 @@ def edit_BabyGoat(id):
             
             if baby_goat['treatment_time']:
                 baby_goat['treatment_time'] = baby_goat['treatment_time'].strftime('%Y-%m-%dT%H:%M')
-                
-            if baby_goat['birth_date']:
-                baby_goat['birth_date'] = baby_goat['birth_date'].strftime('%Y-%m-%dT%H:%M')
+
                 
         cursor.close()
         conn.close()
@@ -362,10 +412,6 @@ def delete_BabyGoat(id):
 
 @app.route('/update_Goat_treatment/<uid>', methods=['POST'])
 def update_Goat_submit_treatment(uid):
-    gender = request.form['gender']
-    breed = request.form['breed']
-    age = request.form['age']
-    register_time = request.form['register_time']
     vaccine_type = request.form['vaccine_type']
     treatment_time = request.form['treatment_time']
     next_vaccine_time = request.form['next_vaccine_time']
@@ -374,8 +420,8 @@ def update_Goat_submit_treatment(uid):
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         cursor.execute("""
-            UPDATE goat SET gender=%s, breed=%s, age=%s, register_time=%s, vaccine_type=%s, treatment_time=%s, next_vaccine_time=%s WHERE uid=%s
-        """, (gender, breed, age, register_time, vaccine_type, treatment_time, next_vaccine_time, uid))
+            UPDATE goat SET vaccine_type=%s, treatment_time=%s, next_vaccine_time=%s WHERE uid=%s
+        """, (vaccine_type, treatment_time, next_vaccine_time, uid))
         conn.commit()
     except mysql.connector.Error as err:
         print(f"Error: {err}")
@@ -1116,39 +1162,7 @@ def recordPrice():
     # Return the data as JSON
     return jsonify(monthly_data)
 
-def birth_cert():
-    
-    conn = mysql.connector.connect(**DB_CONFIG)
-    cursor = conn.cursor(dictionary=True)
-    
-    cursor.execute("""
-        SELECT uid, mom_uid, dad_uid FROM baby_goat
-        """)
 
-    family = cursor.fetchall()
-    conn.close()
-    
-    return family
-
-def build_birth_tree(family_data):
-    family_tree = {}
-    
-    for goat in family_data:
-        uid = goat['uid']
-        mom_uid = goat['mom_uid']
-        dad_uid = goat['dad_uid']
-        
-        # Create a unique key for the family (mom + dad combination)
-        family_key = f"{mom_uid} and {dad_uid}"
-        
-        # Ensure that the family (mom + dad) is in the tree
-        if family_key not in family_tree:
-            family_tree[family_key] = {'mom_uid': mom_uid, 'dad_uid': dad_uid, 'children': []}
-        
-        # Add the child under this family node
-        family_tree[family_key]['children'].append(uid)
-
-    return family_tree
 
 @app.route('/farmer_page')
 def farmer_page():

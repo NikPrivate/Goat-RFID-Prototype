@@ -489,7 +489,19 @@ input[type="datetime-local"] {
   justify-content: center;
   align-items: center;
   flex-direction: column;
+  padding-bottom: 100px;
 }
+
+.card-tree {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 60px;
+  width: 95%;
+  flex: 1;
+}
+
 .parents {
   display: flex;
   justify-content: center;

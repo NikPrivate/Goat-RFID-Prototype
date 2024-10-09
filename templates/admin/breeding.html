@@ -56,14 +56,14 @@ block content %}
       document.getElementById("details").innerHTML = `
         <form id="goatForm" action="/add_breeding" method="POST">
           <div>
-            <label for="uid">Goat ID</label>
+            <label for="uid">Male Goat ID</label>
             <input type="text" id="uid" name="uid" onclick="setFocusedField('uid')" value="${
               details.uid
             }" readonly>
           </div>
           <div>
           <div id="partnerFields">
-            <label for="partner_uid">Partner Goat ID</label>
+            <label for="partner_uid">Female Goat ID</label>
             <input type="text" id="partner_uid_1" name="partner_uid[]" onclick="setFocusedField('partner_uid_1')" value="${
               details.partner_uid
             }" readonly>

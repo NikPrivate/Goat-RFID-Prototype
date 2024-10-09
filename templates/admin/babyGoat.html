@@ -66,17 +66,21 @@
             readonly
           />
         </div>
-        <div>
-          <label for="breed">Breed</label>
-          <input type="text" id="breed" name="breed" />
-        </div>
+        <div class="breed-goat-register">
+                        <label for="breed" class="form-label">Breed</label>
+                        <select id="breed" name="breed" class="form-select">
+                            <option value="Alpine" ${
+                              details.breed === "Alpine" ? "selected" : ""
+                            }>Alpine</option>
+                            <option value="Boer" ${
+                              details.breed === "Boer" ? "selected" : ""
+                            }>Boer</option>
+                            <!-- Add more options as needed -->
+                        </select>
+                    </div>
         <div>
           <label for="register_time">Register Time</label>
           <input type="datetime-local" id="register_time" name="register_time" />
-        </div>
-        <div>
-          <label for="birth_date">Birth Date</label>
-          <input type="datetime-local" id="birth_date" name="birth_date" />
         </div>
         <div>
           <label for="health_status">Health Status</label>
