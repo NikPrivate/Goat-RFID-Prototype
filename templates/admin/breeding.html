@@ -64,9 +64,7 @@ block content %}
           <div>
           <div id="partnerFields">
             <label for="partner_uid">Female Goat ID</label>
-            <input type="text" id="partner_uid_1" name="partner_uid[]" onclick="setFocusedField('partner_uid_1')" value="${
-              details.partner_uid
-            }" readonly>
+            <input type="text" id="partner_uid_1" name="partner_uid[]" onclick="setFocusedField('partner_uid_1')" readonly>
           </div>
           <div class="btn_partner_container">
             <div class="add_partner">
@@ -80,7 +78,7 @@ block content %}
           <div>
             <label for="program_date">Program Date</label>
             <input type="datetime-local" id="program_date" name="program_date"
-            value="${programDate}">
+            value="${programDate}" required>
           </div>
           <div>
             <label for="pregnancy_check_date">Pregnancy Check Date</label>
@@ -94,7 +92,7 @@ block content %}
           </div>
           <div class="breed-goat-register">
                     <label for="breeding_method">Breeding Method</label>
-                    <select id="breeding_method" name="breeding_method" class="form-select">
+                    <select id="breeding_method" name="breeding_method" class="form-select" required>
                         <option value="Artificial insemination (AI)" ${
                           details.breeding_method ===
                           "Artificial insemination (AI)"
@@ -181,7 +179,7 @@ block content %}
     const newPartnerFields = document.createElement("div");
 
     newPartnerFields.innerHTML = `<label for="partner_uid_${partnerUIDcount}">Partner Goat ID ${partnerUIDcount}</label>
-    <input type="text" id="partner_uid_${partnerUIDcount}" name="partner_uid[]" onclick="setFocusedField('partner_uid_${partnerUIDcount}')" value=${details.partner_uid}>`;
+    <input type="text" id="partner_uid_${partnerUIDcount}" name="partner_uid[]" onclick="setFocusedField('partner_uid_${partnerUIDcount}')">`;
 
     partnerFields.appendChild(newPartnerFields);
   }
