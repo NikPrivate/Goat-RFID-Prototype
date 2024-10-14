@@ -1,28 +1,35 @@
 {% extends 'index.html' %} {% block title %} Goat Registration {% endblock %} {%
 block content %}
 <h1>Goat Registration</h1>
-<p>Goat ID: <span id="uid">Waiting...</span></p>
+<p><span id="uid"></span></p>
 <div id="details">Register Goat</div>
 
 <script>
-  let uidFound = false;
+  let focusedField = "uid"; // Track the focused input field
+  let lastUID = ""; // Store the last UID to avoid unnecessary updates
+  let partnerUIDcount = 1;
+
+  // Set the currently focused field when an input is clicked
+  function setFocusedField(field) {
+    focusedField = field;
+  }
 
   async function fetchUID() {
-    if (uidFound) return; // Stop fetchUID if a UID is found and form is displayed.
-
     const response = await fetch("/latest_uid");
     const data = await response.json();
     const uid = data.uid || "No UID scanned";
-    document.getElementById("uid").innerText = uid;
 
-    if (uid !== "No UID scanned") {
-      uidFound = true; // Stop fetching after UID is found
-      const detailsResponse = await fetch(`/uid_details/${uid}`);
-      const details = await detailsResponse.json();
-      displayDetails(details);
-    } else {
-      document.getElementById("details").innerHTML =
-        "<p>No details available</p>";
+    // Only update the field if a new UID is scanned and it hasn't been set before
+    if (uid !== "No UID scanned" && uid !== lastUID) {
+      document.getElementById(focusedField).value = uid;
+      lastUID = uid; // Update the lastUID to avoid duplicate updates
+
+      // Fetch and display goat details only for the first UID field
+      if (focusedField === "uid") {
+        const detailsResponse = await fetch(`/uid_details/${uid}`);
+        const details = await detailsResponse.json();
+        displayDetails(details);
+      }
     }
   }
 
@@ -34,9 +41,21 @@ block content %}
                 }" method="POST" enctype="multipart/form-data">
                     <div>
                         <label for="uid">Goat ID</label>
-                        <input type="text" id="uid" name="uid" value="${
+                        <input type="text" id="uid" name="uid" onclick="setFocusedField('uid')" value="${
                           details.uid
                         }" readonly>
+                    </div>
+                    <div>
+                      <label for="dad_uid">Father Goat ID</label>
+                      <input type="text" id="dad_uid" name="dad_uid" onclick="setFocusedField('dad_uid')" value="${
+                        details.dad_uid
+                      }" readonly>
+                    </div>
+                    <div>
+                      <label for="mom_uid">Mother Goat ID</label>
+                      <input type="text" id="mom_uid" name="mom_uid" onclick="setFocusedField('mom_uid')" value="${
+                        details.mom_uid
+                      }" readonly>
                     </div>
                     <div>
                       <label>Upload Goat Image</label>

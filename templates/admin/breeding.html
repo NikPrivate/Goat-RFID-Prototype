@@ -1,6 +1,16 @@
 {% extends 'index.html' %} {% block title %}Breeding Program{% endblock %} {%
 block content %}
 <h1>Breeding Program</h1>
+
+{% with messages = get_flashed_messages(with_categories=true) %} {% if messages
+%}
+<ul>
+  {% for category, message in messages %}
+  <li class="{{ category }}">{{ message }}</li>
+  {% endfor %}
+</ul>
+{% endif %} {% endwith %}
+
 <span id="uid"></span>
 <div id="details">Register breed program</div>
 
@@ -64,7 +74,9 @@ block content %}
           <div>
           <div id="partnerFields">
             <label for="partner_uid">Female Goat ID</label>
-            <input type="text" id="partner_uid_1" name="partner_uid[]" onclick="setFocusedField('partner_uid_1')" readonly>
+            <input type="text" id="partner_uid_1" name="partner_uid[]" onclick="setFocusedField('partner_uid_1')" value="${
+              details.partner_uid
+            }" readonly>
           </div>
           <div class="btn_partner_container">
             <div class="add_partner">

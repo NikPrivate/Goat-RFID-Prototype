@@ -67,27 +67,27 @@ def get_uid_details(uid):
     cursor = conn.cursor(dictionary=True)
     
     # Query to get data from the 'goat' table
-    cursor.execute("SELECT uid, gender, image_path, breed, DATEDIFF(CURDATE(), birth_date) AS age, weight, register_time, birth_date, health_status, vaccine_type, treatment_time, next_vaccine_time, rfid_scan_time  FROM goat WHERE uid = %s", (uid,))
+    cursor.execute("SELECT uid, mom_uid, dad_uid, gender, image_path, breed, DATEDIFF(CURDATE(), birth_date) AS age, weight, register_time, birth_date, health_status, vaccine_type, treatment_time, next_vaccine_time, rfid_scan_time  FROM goat WHERE uid = %s", (uid,))
     goat_result = cursor.fetchone()
     
     # Query to get data from the 'breeding' table
     cursor.execute("SELECT * FROM breeding WHERE uid = %s", (uid,))
     breeding_result = cursor.fetchone()
     
-    cursor.execute("SELECT * FROM baby_goat WHERE uid = %s", (uid,))
-    babyGoat_result = cursor.fetchone()
+    # cursor.execute("SELECT * FROM baby_goat WHERE uid = %s", (uid,))
+    # babygoat_result = cursor.fetchone()
     
     # Combine the results if both queries return data
     result = {}
     
     if goat_result:
         result.update(goat_result)
+        
+    # if babygoat_result:
+    #     result.update(babygoat_result)
 
     if breeding_result:
         result.update(breeding_result)
-        
-    if babyGoat_result:
-        result.update(babyGoat_result)
 
     # Format datetime fields for the datetime-local input if they exist
     if 'register_time' in result and result['register_time']:
@@ -186,6 +186,8 @@ def allowed_file(filename):
 
 @app.route('/update_Goat/<uid>', methods=['POST'])
 def update_Goat_submit(uid):
+    mom_uid = request.form['mom_uid']
+    dad_uid = request.form['dad_uid']
     gender = request.form['gender']
     breed = request.form['breed']
     register_time = request.form['register_time']
@@ -215,13 +217,13 @@ def update_Goat_submit(uid):
         # If an image is uploaded, update the image_path in the database
         if image_path:
             cursor.execute("""
-                UPDATE goat SET gender=%s, breed=%s, age=DATEDIFF(CURDATE(), %s), weight=%s, register_time=%s, birth_date=%s, image_path=%s WHERE uid=%s
-            """, (gender, breed, birth_date, weight, register_time, birth_date, image_path, uid))
+                UPDATE goat SET mom_uid=%s, dad_uid=%s, gender=%s, breed=%s, age=DATEDIFF(CURDATE(), %s), weight=%s, register_time=%s, birth_date=%s, image_path=%s WHERE uid=%s
+            """, (mom_uid, dad_uid, gender, breed, birth_date, weight, register_time, birth_date, image_path, uid))
         else:
             # If no image was uploaded, update the other fields but keep the existing image_path
             cursor.execute("""
-                UPDATE goat SET gender=%s, breed=%s, age=DATEDIFF(CURDATE(), %s), weight=%s, register_time=%s, birth_date=%s, image_path=%s WHERE uid=%s
-            """, (gender, breed, birth_date, weight, register_time, birth_date, current_image_path, uid))
+                UPDATE goat SET mom_uid=%s, dad_uid=%s, gender=%s, breed=%s, age=DATEDIFF(CURDATE(), %s), weight=%s, register_time=%s, birth_date=%s, image_path=%s WHERE uid=%s
+            """, (mom_uid, dad_uid, gender, breed, birth_date, weight, register_time, birth_date, current_image_path, uid))
 
         conn.commit()
     except mysql.connector.Error as err:
@@ -241,6 +243,7 @@ def add_BabyGoat():
     mom_uid = request.form['mom_uid']
     dad_uid = request.form['dad_uid']
     breed = request.form['breed']
+    gender = request.form['gender']
     register_time = request.form['register_time']
     health_status = request.form['health_status']
     treatment_time = request.form['treatment_time']
@@ -250,8 +253,8 @@ def add_BabyGoat():
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO baby_goat (uid, mom_uid, dad_uid, breed, register_time, health_status, treatment_time) VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """, (uid, mom_uid, dad_uid, breed, register_time, health_status, treatment_time))
+            INSERT INTO baby_goat (uid, mom_uid, dad_uid, breed, gender, register_time, health_status, treatment_time) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """, (uid, mom_uid, dad_uid, breed, gender,register_time, health_status, treatment_time))
         
         conn.commit()
         
@@ -356,14 +359,15 @@ def edit_BabyGoat(id):
             mom_uid = request.form['mom_uid']
             dad_uid = request.form['dad_uid']
             breed = request.form['breed']
+            gender = request.form['gender']
             register_time = request.form['register_time']
             health_status = request.form['health_status']
             treatment_time = request.form['treatment_time']
             
             cursor.execute("""
                 UPDATE baby_goat
-                SET mom_uid=%s, dad_uid=%s, breed=%s, register_time=%s, health_status=%s, treatment_time=%s WHERE uid=%s
-            """, (mom_uid, dad_uid, breed, register_time, health_status, treatment_time, id))
+                SET mom_uid=%s, dad_uid=%s, breed=%s, gender=%s, register_time=%s, health_status=%s, treatment_time=%s WHERE uid=%s
+            """, (mom_uid, dad_uid, breed, gender, register_time, health_status, treatment_time, id))
             
             conn.commit()
 
@@ -647,46 +651,78 @@ def breeding():
 
 @app.route('/add_breeding', methods=['POST'])
 def add_breeding():
-    uid = request.form['uid']
-    partner_uids = request.form.getlist('partner_uid[]')  # Get all partner_uid inputs
+    uid = request.form['uid']  # Male goat's UID
+    partner_uids = request.form.getlist('partner_uid[]')  # List of partner goat UIDs
     program_date = request.form['program_date']
     pregnancy_check_date = request.form['pregnancy_check_date']
     expected_birth_date = request.form['expected_birth_date']
     breeding_method = request.form['breeding_method']
     
+    print(f"Received UID: {uid}")
+    
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor(dictionary=True)
 
-        # Fetch the mom_uid and dad_uid for the given goat UID
-        cursor.execute("""
-            SELECT mom_uid, dad_uid
-            FROM baby_goat
-            WHERE uid = %s
-        """, (uid,))
+        # Fetch the mom_uid, dad_uid, and gender for the given goat UID
+        cursor.execute("""SELECT mom_uid, dad_uid, gender, uid FROM goat WHERE uid = %s""", (uid,))
         parent_data = cursor.fetchone()
-
-        if parent_data is None:
-            return "No parent data found for this UID", 404
         
+        if parent_data is None:
+            flash('Goat not found', 'error')
+            return redirect(url_for('breeding'))
+
         mom_uid = parent_data['mom_uid']
         dad_uid = parent_data['dad_uid']
+        gender = parent_data['gender']
+        goat_id = parent_data['uid']  # Child goat ID (same as uid)
 
+        print(f"Parent data fetched: {parent_data}")
+
+        # Ensure the main goat's gender is male
+        if gender != 'Male':
+            flash('The Male Goat ID must be a Male Goat', 'error')
+            return redirect(url_for('breeding'))
+                
         # Insert each partner_uid into the database
         for partner_uid in partner_uids:
-            # Check if the partner is eith
-            # 
-            # er the mom or dad
-            if partner_uid == mom_uid or partner_uid == dad_uid:
-                return "Breeding not allowed: partner cannot be the mom or dad", 400
+            # Fetch gender and parent data of the partner goat
+            cursor.execute("""SELECT gender, mom_uid, dad_uid, uid FROM goat WHERE uid = %s""", (partner_uid,))
+            partner_data = cursor.fetchone()
             
-            if uid == partner_uid:
-                return "Breeding not allowed: a goat cannot breed with itself", 400
+            if partner_data is None:
+                flash(f'Partner goat with UID {partner_uid} not found', 'error')
+                continue
 
-            cursor.execute("""
-                INSERT INTO breeding (uid, partner_uid, program_date, pregnancy_check_date, expected_birth_date, breeding_method)
-                VALUES (%s, %s, %s, %s, %s, %s)
-            """, (uid, partner_uid, program_date, pregnancy_check_date, expected_birth_date, breeding_method))
+            partner_gender = partner_data['gender']
+            partner_mom_uid = partner_data['mom_uid']
+            partner_dad_uid = partner_data['dad_uid']
+            partner_goat_id = partner_data['uid']  # Partner goat ID
+
+            # Validate partner's gender
+            if partner_gender != 'Female':
+                flash(f'Partner goat with UID {partner_uid} must be female', 'error')
+                continue
+            
+             # Prevent breeding with mother or father
+            if partner_uid == mom_uid or partner_uid == dad_uid:
+                flash(f'Breeding not allowed with parent goat (UID: {partner_uid})', 'error')
+                continue
+
+            # Prevent breeding if the male goat is the dad and the partner is the child
+            if uid == partner_dad_uid and partner_uid == partner_goat_id:
+                flash(f'Breeding not allowed: cannot breed with child goat (UID: {partner_uid})', 'error')
+                continue
+
+            # Prevent breeding if the male goat is the child and the partner is the mother
+            if uid == partner_goat_id and partner_uid == partner_mom_uid:
+                flash(f'Breeding not allowed: cannot breed with mother goat (UID: {partner_uid})', 'error')
+                continue
+
+            # Insert breeding record
+            cursor.execute("""INSERT INTO breeding (uid, partner_uid, program_date, pregnancy_check_date, expected_birth_date, breeding_method)
+                              VALUES (%s, %s, %s, %s, %s, %s)""",
+                           (uid, partner_uid, program_date, pregnancy_check_date, expected_birth_date, breeding_method))
         
         conn.commit()
         cursor.close()
@@ -697,6 +733,7 @@ def add_breeding():
     except mysql.connector.Error as err:
         print(f"Error: {err}")
         return "Error inserting breeding program details into the database", 500
+
 
     
 @app.route('/view_breeding')

@@ -78,6 +78,17 @@
                             <!-- Add more options as needed -->
                         </select>
                     </div>
+                    <div class="gender-goat-register">
+                        <label for="gender" class="form-label">Gender</label>
+                         <select id="gender" name="gender" class="form-select">
+                            <option value="Male" ${
+                              details.gender === "Male" ? "selected" : ""
+                            }>Male</option>
+                            <option value="Female" ${
+                              details.gender === "Female" ? "selected" : ""
+                            }>Female</option>
+                        </select>
+                    </div>
         <div>
           <label for="register_time">Register Time</label>
           <input type="datetime-local" id="register_time" name="register_time" />

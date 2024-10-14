@@ -35,7 +35,9 @@
   function displayDetails(details) {
     if (details) {
       document.getElementById("details").innerHTML = `
-          <form id="goatForm" action="/edit_BabyGoat/${details.uid}" method="POST">
+          <form id="goatForm" action="/edit_BabyGoat/${
+            details.uid
+          }" method="POST">
             <div>
               <label for="uid">Baby Goat ID</label>
               <input
@@ -67,9 +69,28 @@
                 onclick="setFocusedField('dad_uid')"
               />
             </div>
-            <div>
-              <label for="breed">Breed</label>
-              <input type="text" id="breed" name="breed" value="${details.breed}" />
+            <div class="breed-goat-register">
+                        <label for="breed" class="form-label">Breed</label>
+                        <select id="breed" name="breed" class="form-select">
+                            <option value="Alpine" ${
+                              details.breed === "Alpine" ? "selected" : ""
+                            }>Alpine</option>
+                            <option value="Boer" ${
+                              details.breed === "Boer" ? "selected" : ""
+                            }>Boer</option>
+                            <!-- Add more options as needed -->
+                        </select>
+                    </div>
+            <div class="gender-goat-register">
+                        <label for="gender" class="form-label">Gender</label>
+                         <select id="gender" name="gender" class="form-select">
+                            <option value="Male" ${
+                              details.gender === "Male" ? "selected" : ""
+                            }>Male</option>
+                            <option value="Female" ${
+                              details.gender === "Female" ? "selected" : ""
+                            }>Female</option>
+                        </select>
             </div>
             <div>
               <label for="register_time">Register Time</label>
@@ -97,6 +118,9 @@
                 name="treatment_time"
                 value="${details.treatment_time}"
               />
+            </div>
+            <div>
+              <button type="submit">Update</button>
             </div>
             <div class="view-back-container">
                   <a href="{{url_for('view_BabyGoat')}}" class="link-view-back
