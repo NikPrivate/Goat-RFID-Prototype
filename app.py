@@ -683,7 +683,28 @@ def add_breeding():
         if gender != 'Male':
             flash('The Male Goat ID must be a Male Goat', 'error')
             return redirect(url_for('breeding'))
-                
+
+        # Fetch grandparents of the male goat
+        male_grandparents = set()
+
+        if mom_uid:
+            cursor.execute("""SELECT mom_uid AS mom_mom_uid, dad_uid AS mom_dad_uid FROM goat WHERE uid = %s""", (mom_uid,))
+            mom_grandparents = cursor.fetchone()
+            if mom_grandparents:
+                if mom_grandparents['mom_mom_uid']:
+                    male_grandparents.add(mom_grandparents['mom_mom_uid'])
+                if mom_grandparents['mom_dad_uid']:
+                    male_grandparents.add(mom_grandparents['mom_dad_uid'])
+
+        if dad_uid:
+            cursor.execute("""SELECT mom_uid AS dad_mom_uid, dad_uid AS dad_dad_uid FROM goat WHERE uid = %s""", (dad_uid,))
+            dad_grandparents = cursor.fetchone()
+            if dad_grandparents:
+                if dad_grandparents['dad_mom_uid']:
+                    male_grandparents.add(dad_grandparents['dad_mom_uid'])
+                if dad_grandparents['dad_dad_uid']:
+                    male_grandparents.add(dad_grandparents['dad_dad_uid'])
+        
         # Insert each partner_uid into the database
         for partner_uid in partner_uids:
             # Fetch gender and parent data of the partner goat
@@ -704,7 +725,7 @@ def add_breeding():
                 flash(f'Partner goat with UID {partner_uid} must be female', 'error')
                 continue
             
-             # Prevent breeding with mother or father
+            # Prevent breeding with mother or father
             if partner_uid == mom_uid or partner_uid == dad_uid:
                 flash(f'Breeding not allowed with parent goat (UID: {partner_uid})', 'error')
                 continue
@@ -717,6 +738,32 @@ def add_breeding():
             # Prevent breeding if the male goat is the child and the partner is the mother
             if uid == partner_goat_id and partner_uid == partner_mom_uid:
                 flash(f'Breeding not allowed: cannot breed with mother goat (UID: {partner_uid})', 'error')
+                continue
+
+            # Fetch partner goat's grandparents
+            partner_grandparents = set()
+
+            if partner_mom_uid:
+                cursor.execute("""SELECT mom_uid AS partner_mom_mom_uid, dad_uid AS partner_mom_dad_uid FROM goat WHERE uid = %s""", (partner_mom_uid,))
+                partner_mom_grandparents = cursor.fetchone()
+                if partner_mom_grandparents:
+                    if partner_mom_grandparents['partner_mom_mom_uid']:
+                        partner_grandparents.add(partner_mom_grandparents['partner_mom_mom_uid'])
+                    if partner_mom_grandparents['partner_mom_dad_uid']:
+                        partner_grandparents.add(partner_mom_grandparents['partner_mom_dad_uid'])
+
+            if partner_dad_uid:
+                cursor.execute("""SELECT mom_uid AS partner_dad_mom_uid, dad_uid AS partner_dad_dad_uid FROM goat WHERE uid = %s""", (partner_dad_uid,))
+                partner_dad_grandparents = cursor.fetchone()
+                if partner_dad_grandparents:
+                    if partner_dad_grandparents['partner_dad_mom_uid']:
+                        partner_grandparents.add(partner_dad_grandparents['partner_dad_mom_uid'])
+                    if partner_dad_grandparents['partner_dad_dad_uid']:
+                        partner_grandparents.add(partner_dad_grandparents['partner_dad_dad_uid'])
+
+            # Prevent breeding with grandparents
+            if partner_uid in male_grandparents or uid in partner_grandparents:
+                flash(f'Breeding not allowed: cannot breed with grandparents (UID: {partner_uid})', 'error')
                 continue
 
             # Insert breeding record
