@@ -2,7 +2,6 @@ from flask import Flask, render_template, request, redirect, jsonify, flash, url
 from datetime import datetime
 from collections import defaultdict
 import mysql.connector
-import hashlib
 from werkzeug.utils import secure_filename
 import os
 
