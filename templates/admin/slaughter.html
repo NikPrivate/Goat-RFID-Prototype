@@ -28,6 +28,9 @@ content %}
     } catch (error) {
       console.error("Error fetching UID:", error);
     }
+
+    // Use setTimeout to call fetchUID again after 1 second
+    setTimeout(fetchUID, 1000);
   }
 
   function displayDetails(details) {
@@ -95,6 +98,9 @@ content %}
     const date = new Date(dateString);
     return date.toISOString().slice(0, 16); // Format to YYYY-MM-DDTHH:MM
   }
+
+  // Start the initial fetchUID call
+  fetchUID();
 </script>
 
 {% endblock %}

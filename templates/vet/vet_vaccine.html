@@ -6,9 +6,11 @@ content %}
 
 <script>
   let uidFound = false;
+  let timeoutReached = false;
 
+  // Function to fetch the UID
   async function fetchUID() {
-    if (uidFound) return;
+    if (uidFound || timeoutReached) return; // Stop fetching if UID is found or timeout has been reached
 
     const response = await fetch(`/latest_uid`);
     const data = await response.json();
@@ -24,8 +26,14 @@ content %}
       document.getElementById("details").innerHTML =
         "<p>No details available</p>";
     }
+
+    // Set up the next fetch if the UID is not found yet
+    if (!uidFound && !timeoutReached) {
+      setTimeout(fetchUID, 1000); // Retry after 1 second
+    }
   }
 
+  // Function to display details
   function displayDetails(details) {
     if (details) {
       document.getElementById("details").innerHTML = `
@@ -74,16 +82,16 @@ content %}
                     }">
                 </div>
                 <div>
-                  <label for ="health_status">Health Status</label>
-                  <input type="text" id="health_status" name="health_status" value=${
+                  <label for="health_status">Health Status</label>
+                  <input type="text" id="health_status" name="health_status" value="${
                     details.health_status
-                  }>
+                  }">
                 </div>
                 <div>
                   <label for="treatment_time">Date to be Vaccinated</label>
-                  <input type="datetime-local" id="treatment_time" name="treatment_time" value=${
+                  <input type="datetime-local" id="treatment_time" name="treatment_time" value="${
                     details.treatment_time
-                  }>
+                  }">
                 </div>
                 <button type="submit">Update Goat</button>
             </form>`;
@@ -92,6 +100,18 @@ content %}
         "<p>No details available</p>";
     }
   }
+
+  // Set timeout for 10 seconds
+  setTimeout(function () {
+    if (!uidFound) {
+      timeoutReached = true;
+      document.getElementById("uid").innerText =
+        "Timeout reached, no UID found.";
+    }
+  }, 10000); // Timeout after 10 seconds
+
+  // Start the UID fetching process
+  fetchUID();
 </script>
 
 {% endblock %}

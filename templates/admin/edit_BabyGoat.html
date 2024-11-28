@@ -6,7 +6,6 @@
 
 <script>
   let focusedField = "uid";
-
   let lastUID = "";
 
   function setFocusedField(field) {
@@ -30,6 +29,9 @@
         displayDetails(details);
       }
     }
+
+    // Recurse using setTimeout to wait for 1000ms before the next fetch
+    setTimeout(fetchUID, 1000);
   }
 
   function displayDetails(details) {
@@ -40,92 +42,68 @@
           }" method="POST">
             <div>
               <label for="uid">Baby Goat ID</label>
-              <input
-                type="text"
-                id="uid"
-                name="uid"
-                value="${details.uid}"
-                readonly
-                onclick="setFocusedField('uid')"
-              />
+              <input type="text" id="uid" name="uid" value="${
+                details.uid
+              }" readonly onclick="setFocusedField('uid')" />
             </div>
             <div>
               <label for="mom_uid">Mother Goat ID</label>
-              <input
-                type="text"
-                id="mom_uid"
-                name="mom_uid"
-                value="${details.mom_uid}"
-                onclick="setFocusedField('mom_uid')"
-              />
+              <input type="text" id="mom_uid" name="mom_uid" value="${
+                details.mom_uid
+              }" onclick="setFocusedField('mom_uid')" />
             </div>
             <div>
               <label for="dad_uid">Father Goat ID</label>
-              <input
-                type="text"
-                id="dad_uid"
-                name="dad_uid"
-                value="${details.dad_uid}"
-                onclick="setFocusedField('dad_uid')"
-              />
+              <input type="text" id="dad_uid" name="dad_uid" value="${
+                details.dad_uid
+              }" onclick="setFocusedField('dad_uid')" />
             </div>
             <div class="breed-goat-register">
-                        <label for="breed" class="form-label">Breed</label>
-                        <select id="breed" name="breed" class="form-select">
-                            <option value="Alpine" ${
-                              details.breed === "Alpine" ? "selected" : ""
-                            }>Alpine</option>
-                            <option value="Boer" ${
-                              details.breed === "Boer" ? "selected" : ""
-                            }>Boer</option>
-                            <!-- Add more options as needed -->
-                        </select>
-                    </div>
+              <label for="breed" class="form-label">Breed</label>
+              <select id="breed" name="breed" class="form-select">
+                <option value="Alpine" ${
+                  details.breed === "Alpine" ? "selected" : ""
+                }>Alpine</option>
+                <option value="Boer" ${
+                  details.breed === "Boer" ? "selected" : ""
+                }>Boer</option>
+                <!-- Add more options as needed -->
+              </select>
+            </div>
             <div class="gender-goat-register">
-                        <label for="gender" class="form-label">Gender</label>
-                         <select id="gender" name="gender" class="form-select">
-                            <option value="Male" ${
-                              details.gender === "Male" ? "selected" : ""
-                            }>Male</option>
-                            <option value="Female" ${
-                              details.gender === "Female" ? "selected" : ""
-                            }>Female</option>
-                        </select>
+              <label for="gender" class="form-label">Gender</label>
+              <select id="gender" name="gender" class="form-select">
+                <option value="Male" ${
+                  details.gender === "Male" ? "selected" : ""
+                }>Male</option>
+                <option value="Female" ${
+                  details.gender === "Female" ? "selected" : ""
+                }>Female</option>
+              </select>
             </div>
             <div>
               <label for="register_time">Register Time</label>
-              <input
-                type="datetime-local"
-                id="register_time"
-                name="register_time"
-                value="${details.register_time}"
-              />
+              <input type="datetime-local" id="register_time" name="register_time" value="${
+                details.register_time
+              }" />
             </div>
             <div>
               <label for="health_status">Health Status</label>
-              <input
-                type="text"
-                id="health_status"
-                name="health_status"
-                value="${details.health_status}"
-              />
+              <input type="text" id="health_status" name="health_status" value="${
+                details.health_status
+              }" />
             </div>
             <div>
               <label for="treatment_time">Treatment Time</label>
-              <input
-                type="datetime-local"
-                id="treatment_time"
-                name="treatment_time"
-                value="${details.treatment_time}"
-              />
+              <input type="datetime-local" id="treatment_time" name="treatment_time" value="${
+                details.treatment_time
+              }" />
             </div>
             <div>
               <button type="submit">Update</button>
             </div>
             <div class="view-back-container">
-                  <a href="{{url_for('view_BabyGoat')}}" class="link-view-back
-                  
-                  ">Cancel</a>
+              <a href="{{url_for('view_BabyGoat')}}" class="link-view-back">Cancel</a>
             </div>
           </form>`;
     } else {
@@ -133,5 +111,8 @@
         "<p>No details available </p>";
     }
   }
+
+  // Start the initial fetchUID call
+  fetchUID();
 </script>
 {% endblock %}

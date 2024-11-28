@@ -22,6 +22,9 @@ block content %}
       document.getElementById("details").innerHTML =
         "<p>No details available</p>";
     }
+
+    // Use setTimeout to call fetchUID again after 1 second
+    setTimeout(fetchUID, 1000);
   }
 
   function displayDetails(details) {
@@ -50,9 +53,12 @@ block content %}
         "<p>No details available</p>";
     }
   }
+
+  // Start the first fetchUID call immediately
+  fetchUID();
 </script>
 
-<form action="" , method="POST">
+<form action="" method="POST">
   <div>
     <label for="weight">Goat Weight (kg)</label>
     <input

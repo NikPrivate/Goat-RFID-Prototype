@@ -38,7 +38,7 @@
 
   function displayDetails(details) {
     if (details) {
-      document.getElementById("details").innerHTML = `
+      document.getElementById("details").innerHTML = ` 
             <form id="goatForm" action="/update_Goat_treatment/${
               details.uid
             }" method="POST">
@@ -68,7 +68,6 @@
                         <option value="Boer" ${
                           details.breed === "Boer" ? "selected" : ""
                         }>Boer</option>
-                        <!-- Add more options as needed -->
                     </select>
                 </div>
                 <div>
@@ -133,7 +132,7 @@
                     details.treatment_time
                   )
                     .toISOString()
-                    .slice(0, 16)}>
+                    .slice(0, 16)} >
                 </div>
                 <div>
                   <label for="next_vaccine_time">Next Date to be Vaccinated</label>
@@ -161,6 +160,9 @@
         "<p>No details available</p>";
     }
   }
+
+  // Set the delay time before fetching the UID (e.g., 1 second)
+  setTimeout(fetchUID, 1000);
 
   const vaccineIntervals = {
     "CD&T (Clostridial Diseases & Tetanus)": 12, // 12 months

@@ -19,6 +19,9 @@ block content %}
       document.getElementById("details").innerHTML =
         "<p>No details available</p>";
     }
+
+    // Set a timeout to call fetchUID again after 1000ms (1 second)
+    setTimeout(fetchUID, 1000);
   }
 
   function displayDetails(details) {
@@ -52,5 +55,8 @@ block content %}
         "<p>No details available</p>";
     }
   }
+
+  // Start the initial fetchUID call
+  fetchUID();
 </script>
 {% endblock %}

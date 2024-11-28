@@ -30,6 +30,9 @@ block content %}
         displayDetails(details);
       }
     }
+
+    // Call fetchUID again after 1 second (1000ms) using setTimeout
+    setTimeout(fetchUID, 1000);
   }
 
   function displayDetails(details) {
@@ -72,6 +75,9 @@ block content %}
         "<p>No details available</p>";
     }
   }
+
+  // Initial call to fetchUID after 1 second delay
+  setTimeout(fetchUID, 1000);
 </script>
 
 {% endblock %}

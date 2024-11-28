@@ -6,7 +6,6 @@
 
 <script>
   let focusedField = "uid";
-
   let lastUID = "";
 
   function setFocusedField(field) {
@@ -30,6 +29,9 @@
         displayDetails(details);
       }
     }
+
+    // Recursively call fetchUID after 1 second using setTimeout
+    setTimeout(fetchUID, 1000);
   }
 
   function displayDetails(details) {
@@ -64,9 +66,7 @@
               <button type="submit">Update</button>
             </div>
             <div class="view-back-container">
-              <a href="{{url_for('farmer_viewBreeding')}}" class="link-view-back
-              
-              ">Cancel</a>
+              <a href="{{url_for('farmer_viewBreeding')}}" class="link-view-back">Cancel</a>
             </div>
           </form>`;
     } else {
@@ -74,5 +74,9 @@
         "<p>No details available </p>";
     }
   }
+
+  // Initial call to fetchUID after 1 second delay
+  setTimeout(fetchUID, 1000);
 </script>
+
 {% endblock %}

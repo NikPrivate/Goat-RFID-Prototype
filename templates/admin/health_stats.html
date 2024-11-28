@@ -24,6 +24,9 @@ block content %}
       document.getElementById("details").innerHTML =
         "<p>No details available</p>";
     }
+
+    // Set a timeout to call fetchUID again after 1000ms (1 second)
+    setTimeout(fetchUID, 1000);
   }
 
   function displayDetails(details) {
@@ -73,9 +76,9 @@ block content %}
                   </div>
                   <div>
                       <label for="health_status">Health Status</label>
-                      <input type="text" id="health_status"
-                      name="health_status" placeholder="injured / pregnant / healthy"
-                      value="${details.health_status}">
+                      <input type="text" id="health_status" name="health_status" placeholder="injured / pregnant / healthy" value="${
+                        details.health_status
+                      }">
                   </div>
                   <div>
                        <label for="treatment_form">Treatment:</label>
@@ -98,7 +101,8 @@ block content %}
     }
   }
 
-  setInterval(fetchUID, 1000); // Fetch UID every second
+  // Start the initial fetchUID call
+  fetchUID();
 </script>
 
 {% endblock %}

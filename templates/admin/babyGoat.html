@@ -7,25 +7,36 @@
 <script>
   let focusedField = "uid";
   let lastUID = "";
+  let isFetching = false; // Prevent overlapping requests
 
   function setFocusedField(field) {
     focusedField = field;
   }
 
   async function fetchUID() {
-    const response = await fetch("/latest_uid");
-    const data = await response.json();
-    const uid = data.uid || "No UID scanned";
+    if (isFetching) return; // Skip if a fetch is already in progress
+    isFetching = true;
 
-    if (uid !== "No UID scanned" && uid !== lastUID) {
-      document.getElementById(focusedField).value = uid;
-      lastUID = uid;
+    try {
+      const response = await fetch("/latest_uid");
+      const data = await response.json();
+      const uid = data.uid || "No UID scanned";
 
-      if (focusedField === "uid") {
-        const detailsResponse = await fetch(`/uid_details/${uid}`);
-        const details = await detailsResponse.json();
-        displayDetails(details);
+      if (uid !== "No UID scanned" && uid !== lastUID) {
+        document.getElementById(focusedField).value = uid;
+        lastUID = uid;
+
+        if (focusedField === "uid") {
+          const detailsResponse = await fetch(`/uid_details/${uid}`);
+          const details = await detailsResponse.json();
+          displayDetails(details);
+        }
       }
+    } catch (error) {
+      console.error("Error fetching UID:", error);
+    } finally {
+      isFetching = false;
+      scheduleNextFetch(); // Schedule the next fetch after the current one finishes
     }
   }
 
@@ -67,28 +78,27 @@
           />
         </div>
         <div class="breed-goat-register">
-                        <label for="breed" class="form-label">Breed</label>
-                        <select id="breed" name="breed" class="form-select">
-                            <option value="Alpine" ${
-                              details.breed === "Alpine" ? "selected" : ""
-                            }>Alpine</option>
-                            <option value="Boer" ${
-                              details.breed === "Boer" ? "selected" : ""
-                            }>Boer</option>
-                            <!-- Add more options as needed -->
-                        </select>
-                    </div>
-                    <div class="gender-goat-register">
-                        <label for="gender" class="form-label">Gender</label>
-                         <select id="gender" name="gender" class="form-select">
-                            <option value="Male" ${
-                              details.gender === "Male" ? "selected" : ""
-                            }>Male</option>
-                            <option value="Female" ${
-                              details.gender === "Female" ? "selected" : ""
-                            }>Female</option>
-                        </select>
-                    </div>
+          <label for="breed" class="form-label">Breed</label>
+          <select id="breed" name="breed" class="form-select">
+            <option value="Alpine" ${
+              details.breed === "Alpine" ? "selected" : ""
+            }>Alpine</option>
+            <option value="Boer" ${
+              details.breed === "Boer" ? "selected" : ""
+            }>Boer</option>
+          </select>
+        </div>
+        <div class="gender-goat-register">
+          <label for="gender" class="form-label">Gender</label>
+          <select id="gender" name="gender" class="form-select">
+            <option value="Male" ${
+              details.gender === "Male" ? "selected" : ""
+            }>Male</option>
+            <option value="Female" ${
+              details.gender === "Female" ? "selected" : ""
+            }>Female</option>
+          </select>
+        </div>
         <div>
           <label for="register_time">Register Time</label>
           <input type="datetime-local" id="register_time" name="register_time" />
@@ -113,6 +123,13 @@
         "<p>No details available</p>";
     }
   }
+
+  function scheduleNextFetch() {
+    setTimeout(fetchUID, 1000); // Schedule the next fetch after 1 second
+  }
+
+  // Start the first fetch
+  fetchUID();
 </script>
 
 {% endblock %}

@@ -10,20 +10,27 @@ block content %}
   async function fetchUID() {
     if (uidFound) return; // Stop fetchUID if a UID is found and form is displayed.
 
-    const response = await fetch("/latest_uid");
-    const data = await response.json();
-    const uid = data.uid || "No UID scanned";
-    document.getElementById("uid").innerText = uid;
+    try {
+      const response = await fetch("/latest_uid");
+      const data = await response.json();
+      const uid = data.uid || "No UID scanned";
+      document.getElementById("uid").innerText = uid;
 
-    if (uid !== "No UID scanned") {
-      uidFound = true; // Stop fetching after UID is found
-      const detailsResponse = await fetch(`/uid_details/${uid}`);
-      const details = await detailsResponse.json();
-      displayDetails(details);
-    } else {
-      document.getElementById("details").innerHTML =
-        "<p>No details available</p>";
+      if (uid !== "No UID scanned") {
+        uidFound = true; // Stop fetching after UID is found
+        const detailsResponse = await fetch(`/uid_details/${uid}`);
+        const details = await detailsResponse.json();
+        displayDetails(details);
+      } else {
+        document.getElementById("details").innerHTML =
+          "<p>No details available</p>";
+      }
+    } catch (error) {
+      console.error("Error fetching UID:", error);
     }
+
+    // Use setTimeout to call fetchUID again after 1 second (1000 ms)
+    setTimeout(fetchUID, 1000);
   }
 
   function displayDetails(details) {
@@ -80,6 +87,9 @@ block content %}
         "<p>No details available</p>";
     }
   }
+
+  // Start the first fetchUID call immediately
+  fetchUID();
 </script>
 
 {% endblock %}

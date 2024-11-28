@@ -6,7 +6,6 @@ block content %}
 
 <script>
   let focusedField = "uid";
-
   let lastUID = "";
 
   function setFocusedField(field) {
@@ -30,6 +29,9 @@ block content %}
         displayDetails(details);
       }
     }
+
+    // Schedule the next fetchUID after 1 second (1000ms)
+    setTimeout(fetchUID, 1000);
   }
 
   function displayDetails(details) {
@@ -64,15 +66,17 @@ block content %}
               <button type="submit">Update</button>
             </div>
             <div class="view-back-container">
-              <a href="{{url_for('vet_viewBreeding')}}" class="link-view-back
-              
-              ">Cancel</a>
+              <a href="{{url_for('vet_viewBreeding')}}" class="link-view-back">Cancel</a>
             </div>
           </form>`;
     } else {
       document.getElementById("details").innerHTML =
-        "<p>No details available </p>";
+        "<p>No details available</p>";
     }
   }
+
+  // Start the first fetchUID call immediately
+  fetchUID();
 </script>
+
 {% endblock %}

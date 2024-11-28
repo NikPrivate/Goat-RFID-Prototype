@@ -27,6 +27,9 @@
         displayDetails(details);
       }
     }
+
+    // Use setTimeout to call fetchUID again after 1 second (1000 ms)
+    setTimeout(fetchUID, 1000);
   }
 
   function displayDetails(details) {
@@ -94,6 +97,9 @@
         "<p>No details available</p>";
     }
   }
+
+  // Start the first fetchUID call immediately
+  fetchUID();
 </script>
 
 {% endblock %}

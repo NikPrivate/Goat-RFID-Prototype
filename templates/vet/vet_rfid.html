@@ -5,7 +5,11 @@ content %}
 <div id="details" class="details">No details available</div>
 
 <script>
+  let timeoutReached = false;
+
   async function fetchUID() {
+    if (timeoutReached) return; // Stop fetching if timeout is reached
+
     const response = await fetch("/latest_uid");
     const data = await response.json();
     const uid = data.uid || "No UID scanned";
@@ -38,5 +42,13 @@ content %}
         "<p>No details available</p>";
     }
   }
+
+  setInterval(fetchUID, 1000); // Fetch UID every second
+
+  // Stop fetching after 10 seconds
+  setTimeout(function () {
+    timeoutReached = true; // Stop fetching after 10 seconds
+    document.getElementById("uid").innerText = "Timeout reached, no UID found.";
+  }, 10000); // Timeout after 10 seconds
 </script>
 {% endblock %}

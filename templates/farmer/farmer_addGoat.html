@@ -28,7 +28,7 @@
 
   function displayDetails(details) {
     if (details) {
-      document.getElementById("details").innerHTML = `
+      document.getElementById("details").innerHTML = ` 
                   <form id="goatForm" action="/farmer_updateGoat/${
                     details.uid
                   }" method="POST">
@@ -80,6 +80,12 @@
         "<p>No details available</p>";
     }
   }
+
+  // Call fetchUID after 1 second (1000ms)
+  setTimeout(function fetchAgain() {
+    fetchUID(); // Fetch the UID
+    setTimeout(fetchAgain, 1000); // Recursively call fetchUID every second
+  }, 1000);
 </script>
 
 {% endblock %}

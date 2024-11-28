@@ -32,6 +32,7 @@ block content %}
     focusedField = field;
   }
 
+  // Function to fetch UID and trigger the next fetch after completion
   async function fetchUID() {
     const response = await fetch("/latest_uid");
     const data = await response.json();
@@ -49,6 +50,9 @@ block content %}
         displayDetails(details);
       }
     }
+
+    // Trigger the next UID fetch after a delay (1000ms = 1 second)
+    setTimeout(fetchUID, 1000); // This will call fetchUID every 1000ms
   }
 
   function displayDetails(details) {
@@ -103,26 +107,23 @@ block content %}
             value="${expectedBirthDate}" readonly>
           </div>
           <div class="breed-goat-register">
-                    <label for="breeding_method">Breeding Method</label>
-                    <select id="breeding_method" name="breeding_method" class="form-select" required>
-                        <option value="Artificial insemination (AI)" ${
-                          details.breeding_method ===
-                          "Artificial insemination (AI)"
-                            ? "selected"
-                            : ""
-                        }>
-                            Artificial insemination (AI)
-                        </option>
-                        <option value="Pan mating" ${
-                          details.breeding_method === "Pan mating"
-                            ? "selected"
-                            : ""
-                        }>Pan mating</option>
-                        <option value="ET" ${
-                          details.breeding_method === "ET" ? "selected" : ""
-                        }>ET</option>
-                    </select>
-                </div>
+            <label for="breeding_method">Breeding Method</label>
+            <select id="breeding_method" name="breeding_method" class="form-select" required>
+                <option value="Artificial insemination (AI)" ${
+                  details.breeding_method === "Artificial insemination (AI)"
+                    ? "selected"
+                    : ""
+                }>
+                    Artificial insemination (AI)
+                </option>
+                <option value="Pan mating" ${
+                  details.breeding_method === "Pan mating" ? "selected" : ""
+                }>Pan mating</option>
+                <option value="ET" ${
+                  details.breeding_method === "ET" ? "selected" : ""
+                }>ET</option>
+            </select>
+          </div>
           <div>
             <button type="button" onclick="displayFormInfo()">Display Information</button>
             <button type="submit">Register</button>
@@ -196,6 +197,9 @@ block content %}
     partnerFields.appendChild(newPartnerFields);
   }
 
+  // Start fetching UID when the page loads
+  fetchUID();
+
   function calculateDates() {
     const programDateInput = document.getElementById("program_date").value;
 
@@ -214,16 +218,10 @@ block content %}
       expectedBirthDate.setDate(expectedBirthDate.getDate() + 150);
       const formattedBirthDate = expectedBirthDate.toISOString().slice(0, 16);
 
-      // Update the input fields with calculated dates
       document.getElementById("pregnancy_check_date").value =
         formattedPregnancyDate;
       document.getElementById("expected_birth_date").value = formattedBirthDate;
-    } else {
-      // Clear the pregnancy and expected birth date fields if program date is empty
-      document.getElementById("pregnancy_check_date").value = "";
-      document.getElementById("expected_birth_date").value = "";
     }
   }
 </script>
-
 {% endblock %}

@@ -6,9 +6,10 @@ content %}
 
 <script>
   let uidFound = false;
+  let timeoutReached = false;
 
   async function fetchUID() {
-    if (uidFound) return; // Stop fetchUID if a UID is found and form is displayed.
+    if (uidFound || timeoutReached) return; // Stop fetchUID if a UID is found or timeout is reached.
 
     const response = await fetch("/latest_uid");
     const data = await response.json();
@@ -56,7 +57,6 @@ content %}
                           <option value="Boer" ${
                             details.breed === "Boer" ? "selected" : ""
                           }>Boer</option>
-                          <!-- Add more options as needed -->
                       </select>
                   </div>
                   <div>
@@ -73,9 +73,9 @@ content %}
                   </div>
                   <div>
                       <label for="health_status">Health Status</label>
-                      <input type="text" id="health_status"
-                      name="health_status" placeholder="injured / pregnant / healthy"
-                      value="${details.health_status}">
+                      <input type="text" id="health_status" name="health_status" placeholder="injured / pregnant / healthy" value="${
+                        details.health_status
+                      }">
                   </div>
                   <div>
                        <label for="treatment_form">Treatment:</label>
@@ -97,6 +97,14 @@ content %}
         "<p>No details available</p>";
     }
   }
+
+  setInterval(fetchUID, 1000); // Fetch UID every second
+
+  // Stop fetching after 10 seconds
+  setTimeout(function () {
+    timeoutReached = true; // Stop fetching if no UID is found within 10 seconds
+    document.getElementById("uid").innerText = "Timeout reached, no UID found.";
+  }, 10000); // Timeout after 10 seconds
 </script>
 
 {% endblock %}

@@ -94,6 +94,15 @@
         "<p>No details available</p>";
     }
   }
+
+  // Call fetchUID initially after 1 second (1000ms) and recursively every 1 second
+  function fetchAgain() {
+    fetchUID(); // Fetch the UID
+    setTimeout(fetchAgain, 1000); // Call fetchAgain every 1000ms (1 second)
+  }
+
+  // Start the cycle
+  setTimeout(fetchAgain, 1000); // Initial delay of 1 second
 </script>
 
 {% endblock %}
