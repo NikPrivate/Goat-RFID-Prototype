@@ -9,10 +9,10 @@ app = Flask(__name__)
 app.secret_key = 'WBl7qpIdJN4K3m1j'
 
 DB_CONFIG = {
-    'user' : 'root',
-    'password' : '',
-    'host' : 'localhost',
-    'database' : 'goat_project'
+    'user': os.getenv('MYSQL_USER'),
+    'password': os.getenv('MYSQL_PASSWORD'),
+    'host': os.getenv('MYSQL_HOST'),
+    'database': os.getenv('MYSQL_DB')
 }
 
 def check_credentials(email, password, user_type):
