@@ -1,6 +1,5 @@
-{% extends 'farmer.html'%}
-{% block title %} Feed Calculator {% endblock %}
-{% block content %}
+{% extends 'farmer.html'%} {% block title %} Feed Calculator {% endblock %} {%
+block content %}
 <h1>Kiraan Keperluan Makanan Harian Ternakan</h1>
 <p>UID: <span id="uid">Waiting...</span></p>
 <div id="details"></div>
@@ -8,26 +7,26 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@latest"></script>
 
-
 <script>
   async function fetchUID() {
-    const response = await fetch('/latest_uid');
+    const response = await fetch("/latest_uid");
     const data = await response.json();
-    const uid = data.uid || 'No UID scanned';
-    document.getElementById('uid').innerText = uid;
+    const uid = data.uid || "No UID scanned";
+    document.getElementById("uid").innerText = uid;
 
-    if (uid !== 'No UID scanned') {
-        const detailsResponse = await fetch(`/uid_details/${uid}`);
-        const details = await detailsResponse.json();
-        displayDetails(details);
+    if (uid !== "No UID scanned") {
+      const detailsResponse = await fetch(`/uid_details/${uid}`);
+      const details = await detailsResponse.json();
+      displayDetails(details);
     } else {
-        document.getElementById('details').innerHTML = '<p>No details available</p>';
+      document.getElementById("details").innerHTML =
+        "<p>No details available</p>";
     }
-}
+  }
 
   function displayDetails(details) {
     if (details) {
-        document.getElementById('details').innerHTML = `
+      document.getElementById("details").innerHTML = `
             <form id="goatForm" action="/farmer_updateGoat/${details.uid}" method="POST">
                 <div>
                     <label for="uid">UID</label>
@@ -47,18 +46,22 @@
                 </div>
             </form>`;
     } else {
-        document.getElementById('details').innerHTML = '<p>No details available</p>';
+      document.getElementById("details").innerHTML =
+        "<p>No details available</p>";
     }
-}
-
-setInterval(fetchUID, 1000);  // Fetch UID every second
-
+  }
 </script>
 
-<form action="", method="POST">
+<form action="" , method="POST">
   <div>
     <label for="weight">Goat Weight (kg)</label>
-    <input type="text" id="weight" name="weight" value="{{weight if weight is not none else ''}}" required>
+    <input
+      type="text"
+      id="weight"
+      name="weight"
+      value="{{weight if weight is not none else ''}}"
+      required
+    />
   </div>
   <div class="breed-goat-register">
     <label for="stage">Stage</label>
@@ -81,39 +84,39 @@ setInterval(fetchUID, 1000);  // Fetch UID every second
   </div>
 
   {% if weight is not none %}
-    <div class="details">
-      <table class="action">
-        <tr>
-          <th>DMI</th>
-          <td>{{dmi}} kg</td>
-        </tr>
-        <tr>
-          <th>FreshFodder (Hijauan Segar)</th>
-          <td>{{freshfodder}} kg</td>
-        </tr>
-        <tr>
-          <th>Hay</th>
-          <td>{{valueHay}} kg</td>
-        </tr>
-        <tr>
-          <th>Konsentrat</th>
-          <td>{{konsentrat}} kg</td>
-        </tr>
-      </table>
-    </div>
+  <div class="details">
+    <table class="action">
+      <tr>
+        <th>DMI</th>
+        <td>{{dmi}} kg</td>
+      </tr>
+      <tr>
+        <th>FreshFodder (Hijauan Segar)</th>
+        <td>{{freshfodder}} kg</td>
+      </tr>
+      <tr>
+        <th>Hay</th>
+        <td>{{valueHay}} kg</td>
+      </tr>
+      <tr>
+        <th>Konsentrat</th>
+        <td>{{konsentrat}} kg</td>
+      </tr>
+    </table>
+  </div>
 
-    <div class="chartBox2">
-      <canvas id="feedChart"></canvas>
-    </div>
+  <div class="chartBox2">
+    <canvas id="feedChart"></canvas>
+  </div>
   {% endif %}
 </form>
 
 <script>
-  window.onload = function() {
-    var ctx = document.getElementById('feedChart').getContext('2d');
+  window.onload = function () {
+    var ctx = document.getElementById("feedChart").getContext("2d");
 
     // Parse the JSON content passed from Flask
-    const jsArrayOfItems = JSON.parse('{{ content|tojson|safe }}');
+    const jsArrayOfItems = JSON.parse("{{ content|tojson|safe }}");
 
     console.log(jsArrayOfItems); // Debugging line to check the data
 
@@ -129,44 +132,42 @@ setInterval(fetchUID, 1000);  // Fetch UID every second
     }
 
     var feedChart = new Chart(ctx, {
-      type: 'doughnut',
+      type: "doughnut",
       data: {
-        labels: ['DMI (%)', 'FreshFodder (%)', 'Hay (%)', 'Konsentrat (%)'],
-        datasets: [{
-          label: 'Feed Distribution',
-          data: [
-            Math.round((dmi/total)*100),
-            Math.round((freshfodder/total)*100),
-            Math.round((valueHay/total)*100),
-            Math.round((konsentrat/total)*100)
-          ],
-          backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'],
-          hoverOffset: 4
-        }]
+        labels: ["DMI (%)", "FreshFodder (%)", "Hay (%)", "Konsentrat (%)"],
+        datasets: [
+          {
+            label: "Feed Distribution",
+            data: [
+              Math.round((dmi / total) * 100),
+              Math.round((freshfodder / total) * 100),
+              Math.round((valueHay / total) * 100),
+              Math.round((konsentrat / total) * 100),
+            ],
+            backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0"],
+            hoverOffset: 4,
+          },
+        ],
       },
       options: {
         responsive: true,
         plugins: {
           legend: {
-            position: 'top',
+            position: "top",
           },
           datalabels: {
-            formatter: function(value, context) {
+            formatter: function (value, context) {
               // Display index and percentage value
-              return context.dataIndex + ': ' + value + '%';
+              return context.dataIndex + ": " + value + "%";
             },
-            color: '#fff', // Optional: Change the color of the labels
-            anchor: 'end', // Optional: Change the position of the labels
-            align: 'top'   // Optional: Align the labels
-          }
-        }
-      }
+            color: "#fff", // Optional: Change the color of the labels
+            anchor: "end", // Optional: Change the position of the labels
+            align: "top", // Optional: Align the labels
+          },
+        },
+      },
     });
-    
   };
 </script>
-
-
-
 
 {% endblock %}

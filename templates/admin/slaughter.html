@@ -95,8 +95,6 @@ content %}
     const date = new Date(dateString);
     return date.toISOString().slice(0, 16); // Format to YYYY-MM-DDTHH:MM
   }
-
-  setInterval(fetchUID, 1000); // Fetch UID every second
 </script>
 
 {% endblock %}
