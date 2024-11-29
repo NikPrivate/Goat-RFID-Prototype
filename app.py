@@ -60,6 +60,39 @@ def logout():
 
     return redirect(url_for('login'))
     
+@app.route('/newscan', methods=["POST"])
+def newscan():
+    try:
+        # Parse the incoming JSON data
+        data = request.get_json()
+        card_id = data.get('cardID')
+
+        if not card_id:
+            return jsonify({"error": "cardID is required"}), 400
+
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor(dictionary=True)
+        query = """
+        UPDATE goat
+        SET rfid_scan_time = %s
+        WHERE uid = %s
+        """
+        current_time = datetime.now()
+        cursor.execute(query, (current_time, card_id))
+        conn.commit()
+        
+
+        if cursor.rowcount == 0:
+            return jsonify({"error": "No record found with the given cardID"}), 404
+
+        return jsonify({"message": "RFID scan time updated successfully"}), 200
+    
+
+    except mysql.connector.Error as err:
+        return jsonify({"error": str(err)}), 500
+    finally:
+        cursor.close()
+        conn.close()
 
 def get_uid_details(uid):
     conn = mysql.connector.connect(**DB_CONFIG)
