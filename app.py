@@ -248,14 +248,11 @@ def update_Goat_submit(uid):
     register_time = request.form['register_time']
     birth_date = request.form['birth_date']
     weight = request.form['weight']
-    
+
     image_path = None
 
-    # Check if the POST request has the file part
     if 'image' in request.files:
         file = request.files['image']
-        
-        # If a valid image file is provided, save it
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
@@ -265,30 +262,42 @@ def update_Goat_submit(uid):
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
 
-        # Fetch the current image path from the database if no new image is uploaded
+        # Fetch current image path
         cursor.execute("SELECT image_path FROM goat WHERE uid=%s", (uid,))
-        current_image_path = cursor.fetchone()[0]
+        result = cursor.fetchone()
+        current_image_path = result[0] if result else None
 
-        # If an image is uploaded, update the image_path in the database
+        if not all([mom_uid, dad_uid, gender, breed, register_time, birth_date, weight]):
+            return "Missing required form data.", 400
+
         if image_path:
             cursor.execute("""
-                UPDATE goat SET mom_uid=%s, dad_uid=%s, gender=%s, breed=%s, age=DATEDIFF(CURDATE(), %s), weight=%s, register_time=%s, birth_date=%s, image_path=%s WHERE uid=%s
+                UPDATE goat 
+                SET mom_uid=%s, dad_uid=%s, gender=%s, breed=%s, age=DATEDIFF(CURDATE(), %s), 
+                    weight=%s, register_time=%s, birth_date=%s, image_path=%s 
+                WHERE uid=%s
             """, (mom_uid, dad_uid, gender, breed, birth_date, weight, register_time, birth_date, image_path, uid))
         else:
-            # If no image was uploaded, update the other fields but keep the existing image_path
             cursor.execute("""
-                UPDATE goat SET mom_uid=%s, dad_uid=%s, gender=%s, breed=%s, age=DATEDIFF(CURDATE(), %s), weight=%s, register_time=%s, birth_date=%s, image_path=%s WHERE uid=%s
+                UPDATE goat 
+                SET mom_uid=%s, dad_uid=%s, gender=%s, breed=%s, age=DATEDIFF(CURDATE(), %s), 
+                    weight=%s, register_time=%s, birth_date=%s, image_path=%s 
+                WHERE uid=%s
             """, (mom_uid, dad_uid, gender, breed, birth_date, weight, register_time, birth_date, current_image_path, uid))
 
         conn.commit()
+        print("Update successful!")
     except mysql.connector.Error as err:
         print(f"Error: {err}")
+        import traceback
+        traceback.print_exc()
         return "An error occurred while updating the goat information.", 500
     finally:
         cursor.close()
         conn.close()
 
     return redirect(url_for('read_Goat'))
+
 
 
 
