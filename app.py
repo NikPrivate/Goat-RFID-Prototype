@@ -148,28 +148,41 @@ def get_uid_details(uid):
 
     return result
 
-
-
-@app.route('/latest_uid', methods=['POST'])
-def latest_uid():
+@app.route('/insert_uid', methods=['POST'])
+def insert_uid():
     data = request.get_json()
-    uid = data.get('uid', '')
-
-    if not uid:
+    if 'uid' not in data:
         return jsonify({'error': 'No UID provided'}), 400
 
-    # Insert or update the UID in the database
+    uid = data['uid']
+    
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
-        query = "INSERT INTO goat (uid) VALUES (%s) ON DUPLICATE KEY UPDATE rfid_scan_time = CURRENT_TIMESTAMP"
+        query = """
+        INSERT INTO goat (uid)
+        VALUES (%s)
+        ON DUPLICATE KEY UPDATE rfid_scan_time = CURRENT_TIMESTAMP
+        """
         cursor.execute(query, (uid,))
         conn.commit()
         cursor.close()
         conn.close()
-        return jsonify({'message': 'UID saved successfully'}), 200
+        return jsonify({'message': 'UID inserted successfully'}), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500 
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/latest_uid')
+def latest_uid_route():
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT uid FROM goat ORDER BY rfid_scan_time DESC LIMIT 1")
+    result = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    uid = result['uid'] if result else ''
+    return jsonify({'uid': uid})    
 
 @app.route('/uid_details/<uid>')
 def uid_details(uid):
