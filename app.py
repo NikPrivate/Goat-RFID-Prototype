@@ -2185,7 +2185,7 @@ def vet_feedCalc():
             
             if stage == 'pembesaran':
                 dmi = round(weight * 0.04,2)
-            elif stage == 'maintenance':
+            elif stage == 'maintenance':    
                 dmi = round(weight * 0.03,2)
             elif stage == 'pembiakan':
                 dmi = round(weight * 0.036,2)
