@@ -209,12 +209,33 @@ input[type="datetime-local"] {
   color: white;
   padding: 20px;
   width: 250px;
-  height: 100%; /* Adjusted height for full page */
+  height: 100%;
   position: fixed;
   left: 0;
   top: 0;
   box-sizing: border-box;
-  transform: translateX(-100%); /* Initially hidden */
+  transform: translateX(-100%);
+  overflow-y: auto;
+}
+
+/* Custom Scrollbar Styles */
+.sidebar::-webkit-scrollbar {
+  width: 8px; /* Width for vertical scrollbar */
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: #2c2c2c;
+  margin-top: 20px; /* Creates space at the top of the scrollbar */
+  margin-bottom: 20px; /* Creates space at the bottom of the scrollbar */
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 
 .sidebar.open {
