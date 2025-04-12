@@ -4,9 +4,11 @@ from collections import defaultdict
 import mysql.connector
 from werkzeug.utils import secure_filename
 import os
+from dotenv import load_dotenv
 
 app = Flask(__name__)
-app.secret_key = 'WBl7qpIdJN4K3m1j'
+app.secret_key = os.getenv('APP_SECRET_KEY')
+load_dotenv()  # Loads variables from .env
 
 DB_CONFIG = {
     'user': os.getenv('MYSQL_USER'),
